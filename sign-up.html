@@ -39,40 +39,39 @@
             padding-right: 1rem;
         }
         
-                /* Glass Card - PERFECTLY CENTERED & EXTRA WIDE */
-.liquid-glass-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    /* THICKER BORDER: Let's actually set it to 3px like you wanted */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); 
-    
-    /* THE FIX: Use 98% to almost touch the edges, or 100% to touch them */
-    width: 100%; 
-    max-width: 600px; /* Increased this so it looks wider on big screens */
-    
-    /* Centering logic */
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    position: relative;
-    
-    /* REDUCED NEON GLOW */
-box-shadow: 
-    0 0 10px rgba(0, 0, 0, 0.5),      /* Shadow depth */
-    0 0 10px var(--neon-orange),     /* Reduced from 25px */
-    0 0 20px rgba(255, 153, 0, 0.15), /* Reduced from 50px */
-    inset 0 0 8px var(--neon-cyan);   /* Reduced from 15px */
+        /* Glass Card - PERFECTLY CENTERED & EXTRA WIDE */
+        .liquid-glass-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            /* THICKER BORDER: Let's actually set it to 3px like you wanted */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); 
+            
+            /* THE FIX: Use 98% to almost touch the edges, or 100% to touch them */
+            width: 100%; 
+            max-width: 600px; /* Increased this so it looks wider on big screens */
+            
+            /* Centering logic */
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            position: relative;
+            
+            /* REDUCED NEON GLOW */
+            box-shadow: 
+                0 0 10px rgba(0, 0, 0, 0.5),      /* Shadow depth */
+                0 0 10px var(--neon-orange),     /* Reduced from 25px */
+                0 0 20px rgba(255, 153, 0, 0.15), /* Reduced from 50px */
+                inset 0 0 8px var(--neon-cyan);   /* Reduced from 15px */
+        }
 
-
-/* Fix for the container to allow the wide card */
-#app-container {
-    width: 100%;
-    max-width: 100%; /* Ensures the parent doesn't squeeze the card */
-    display: flex;
-    justify-content: center;
-}
-
+        /* Fix for the container to allow the wide card */
+        #app-container {
+            width: 100%;
+            max-width: 100%; /* Ensures the parent doesn't squeeze the card */
+            display: flex;
+            justify-content: center;
+        }
 
         /* Inputs */
         .glass-input {
@@ -254,6 +253,23 @@ box-shadow:
 
         .username-checking {
             border-color: #f59e0b !important;
+        }
+        
+        /* Username status text styles */
+        .username-status-available {
+            color: #10b981;
+        }
+        
+        .username-status-taken {
+            color: #ef4444;
+        }
+        
+        .username-status-checking {
+            color: #f59e0b;
+        }
+        
+        .username-status-error {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -492,12 +508,12 @@ box-shadow:
                         <div>
                             <label for="profile-username" class="block text-sm font-medium text-gray-200 mb-2">Username *</label>
                             <input type="text" id="profile-username" placeholder="e.g., motion_flow_user" 
-                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600 username-checking" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600" 
                                    required minlength="3" maxlength="20"
                                    oninput="validateUsername(this.value)">
-                            <div class="text-xs text-gray-400 mt-1 flex items-center">
-                                <i id="username-status-icon" class="fas fa-circle text-yellow-500 mr-1 text-xs"></i>
-                                <span id="username-status-text">Checking availability...</span>
+                            <div class="mt-1 flex items-center">
+                                <i id="username-status-icon" class="fas fa-circle text-gray-500 mr-2 text-xs"></i>
+                                <span id="username-status-text" class="text-xs text-gray-400">Start typing to check availability</span>
                             </div>
                             <div class="text-xs text-gray-500 mt-1">
                                 Only lowercase letters, numbers, and underscores allowed. No special characters (@,#,$,-).
@@ -641,8 +657,7 @@ box-shadow:
             collection,
             query,
             where,
-            getDocs,
-            updateDoc
+            getDocs
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
@@ -692,13 +707,14 @@ box-shadow:
             { id: 'girl5', url: 'https://files.catbox.moe/t6mk1v.jpg' }
         ];
 
-        // FIXED: Username availability check with proper debounce
+        // Username availability check with proper debounce
         let usernameCheckTimeout = null;
         let lastCheckedUsername = '';
         let lastCheckResult = null;
+        let isCheckingUsername = false;
 
         const checkUsernameAvailability = async (username) => {
-            if (!username || username.length < 3) return true;
+            if (!username || username.length < 3) return null;
             
             // Check if we already checked this username recently
             if (username === lastCheckedUsername && lastCheckResult !== null) {
@@ -722,12 +738,12 @@ box-shadow:
                 return isTaken;
             } catch (error) {
                 console.error("Error checking username availability:", error);
-                // On error, assume username is taken to be safe
-                return true;
+                // On error, return null to indicate unknown status
+                return null;
             }
         };
 
-        // FIXED: Username validation with proper debounce
+        // FIXED: Username validation with proper debounce and UI updates
         window.validateUsername = async (username) => {
             const usernameInput = document.getElementById('profile-username');
             const statusIcon = document.getElementById('username-status-icon');
@@ -739,57 +755,77 @@ box-shadow:
                 usernameCheckTimeout = null;
             }
             
-            // Reset to checking state
-            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
-            usernameInput.classList.add('username-checking');
-            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
-            statusText.textContent = 'Checking...';
-            statusText.className = 'text-xs text-yellow-500';
-            
             // Validate format first
+            if (!username || username.length === 0) {
+                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+                statusIcon.className = 'fas fa-circle text-gray-500 mr-2 text-xs';
+                statusText.textContent = 'Start typing to check availability';
+                statusText.className = 'text-xs text-gray-400';
+                return;
+            }
+            
             if (!/^[a-z0-9_]+$/.test(username)) {
-                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
                 usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
                 statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
-                statusText.className = 'text-xs text-red-500';
+                statusText.className = 'text-xs username-status-error';
                 return;
             }
             
             if (username.length < 3) {
-                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
                 usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
                 statusText.textContent = 'Username must be at least 3 characters';
-                statusText.className = 'text-xs text-red-500';
+                statusText.className = 'text-xs username-status-error';
                 return;
             }
             
+            // Set checking state
+            usernameInput.classList.remove('username-valid', 'username-invalid');
+            usernameInput.classList.add('username-checking');
+            statusIcon.className = 'fas fa-circle-notch fa-spin text-yellow-500 mr-2 text-xs';
+            statusText.textContent = 'Checking availability...';
+            statusText.className = 'text-xs username-status-checking';
+            
             // Set debounce timeout for Firestore query
             usernameCheckTimeout = setTimeout(async () => {
+                isCheckingUsername = true;
                 try {
                     const isTaken = await checkUsernameAvailability(username);
                     
-                    if (isTaken) {
+                    if (isTaken === null) {
+                        // Error occurred
                         usernameInput.classList.remove('username-checking');
                         usernameInput.classList.add('username-invalid');
-                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                        statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-2 text-xs';
+                        statusText.textContent = 'Error checking username';
+                        statusText.className = 'text-xs username-status-error';
+                    } else if (isTaken) {
+                        // Username is taken
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-invalid');
+                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
                         statusText.textContent = 'Username is already taken';
-                        statusText.className = 'text-xs text-red-500';
+                        statusText.className = 'text-xs username-status-taken';
                     } else {
+                        // Username is available
                         usernameInput.classList.remove('username-checking');
                         usernameInput.classList.add('username-valid');
-                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
+                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-2 text-xs';
                         statusText.textContent = 'Username is available';
-                        statusText.className = 'text-xs text-green-500';
+                        statusText.className = 'text-xs username-status-available';
                     }
                 } catch (error) {
                     console.error("Error validating username:", error);
                     usernameInput.classList.remove('username-checking');
                     usernameInput.classList.add('username-invalid');
-                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
+                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-2 text-xs';
                     statusText.textContent = 'Error checking username';
-                    statusText.className = 'text-xs text-red-500';
+                    statusText.className = 'text-xs username-status-error';
+                } finally {
+                    isCheckingUsername = false;
                 }
             }, 500); // 500ms debounce delay
         };
@@ -872,6 +908,12 @@ box-shadow:
                 const username = document.getElementById('profile-username').value.trim();
                 const nickname = document.getElementById('profile-nickname').value.trim();
                 
+                // Check if username validation is still in progress
+                if (isCheckingUsername) {
+                    showProfileMessage("Please wait while we check username availability", 'error');
+                    return;
+                }
+                
                 if (!username || username.length < 3) {
                     showProfileMessage("Username must be at least 3 characters", 'error');
                     return;
@@ -880,6 +922,18 @@ box-shadow:
                 // Check username format
                 if (!/^[a-z0-9_]+$/.test(username)) {
                     showProfileMessage("Username can only contain lowercase letters, numbers, and underscores", 'error');
+                    return;
+                }
+                
+                // Check if username is taken
+                const usernameInput = document.getElementById('profile-username');
+                if (usernameInput.classList.contains('username-invalid')) {
+                    showProfileMessage("Please choose a valid and available username", 'error');
+                    return;
+                }
+                
+                if (!usernameInput.classList.contains('username-valid')) {
+                    showProfileMessage("Please wait for username validation to complete", 'error');
                     return;
                 }
                 
@@ -1244,7 +1298,6 @@ box-shadow:
             }
         };
 
-        // FIXED: handleProfileSubmit function with proper username checking and correct path
         const handleProfileSubmit = async () => {
             if (!currentUser) {
                 showProfileMessage("Please sign in first", 'error');
@@ -1282,7 +1335,14 @@ box-shadow:
                 return;
             }
 
-            // Check username availability using the improved function
+            // Check if username is taken by looking at the UI state
+            const usernameInput = document.getElementById('profile-username');
+            if (!usernameInput.classList.contains('username-valid')) {
+                showProfileMessage("Please choose a valid and available username", 'error');
+                return;
+            }
+
+            // Check username availability one more time to be sure
             try {
                 const usernameTaken = await checkUsernameAvailability(username);
                 if (usernameTaken) {
@@ -1333,10 +1393,8 @@ box-shadow:
                     updatedAt: new Date().toISOString()
                 };
 
-                // FIXED: Use the correct path: doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings')
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
-                
                 // Save to Firestore
+                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
                 await setDoc(userDocRef, userDataUpdate, { merge: true });
 
                 showProfileMessage("Profile setup complete! Redirecting...", 'success');
@@ -1428,9 +1486,6 @@ box-shadow:
                 txt.className = 'text-xs text-red-400';
             }
         };
-
-        // Make handleProfileSubmit available globally
-        window.handleProfileSubmit = handleProfileSubmit;
 
         // Initialize
         document.getElementById('password').addEventListener('input', (e) => checkPasswordStrength(e.target.value));
