@@ -641,7 +641,8 @@ box-shadow:
             collection,
             query,
             where,
-            getDocs
+            getDocs,
+            updateDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
@@ -1243,6 +1244,7 @@ box-shadow:
             }
         };
 
+        // FIXED: handleProfileSubmit function with proper username checking and correct path
         const handleProfileSubmit = async () => {
             if (!currentUser) {
                 showProfileMessage("Please sign in first", 'error');
@@ -1331,8 +1333,10 @@ box-shadow:
                     updatedAt: new Date().toISOString()
                 };
 
-                // Save to Firestore
+                // FIXED: Use the correct path: doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings')
                 const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
+                
+                // Save to Firestore
                 await setDoc(userDocRef, userDataUpdate, { merge: true });
 
                 showProfileMessage("Profile setup complete! Redirecting...", 'success');
@@ -1425,9 +1429,12 @@ box-shadow:
             }
         };
 
+        // Make handleProfileSubmit available globally
+        window.handleProfileSubmit = handleProfileSubmit;
+
         // Initialize
         document.getElementById('password').addEventListener('input', (e) => checkPasswordStrength(e.target.value));
         initializeApplication();
     </script>
 </body>
-    </html>
+</html>
