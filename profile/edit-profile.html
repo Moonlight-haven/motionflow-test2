@@ -51,7 +51,7 @@
       z-index: 0;
     }
 
-    /* --- TOP NAVIGATION (From Updates Page) --- */
+    /* --- TOP NAVIGATION --- */
     .top-nav {
       height: 70px;
       background: rgba(10, 10, 18, 0.9);
@@ -113,7 +113,7 @@
       user-select: none;
     }
 
-    /* --- SIDEBAR (From Updates Page) --- */
+    /* --- SIDEBAR --- */
     .sidebar-overlay {
       position: fixed;
       inset: 0;
@@ -223,7 +223,7 @@
     /* Loading Animation */
     .loading-overlay {
       position: fixed;
-      top: 70px; /* Below new navbar */
+      top: 70px;
       left: 0;
       width: 100%;
       height: calc(100vh - 70px);
@@ -269,35 +269,10 @@
       max-width: 200px;
     }
 
-    .skeleton-loading {
-      opacity: 0;
-      animation: fadeIn 0.5s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .skeleton-item {
-      background: linear-gradient(90deg, 
-        var(--color-bg-light) 0%, 
-        rgba(255, 255, 255, 0.05) 50%, 
-        var(--color-bg-light) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 8px;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
     /* Main Content */
     .main-content {
       flex: 1;
-      padding: 90px 20px 120px; /* Adjusted for new navbar */
+      padding: 90px 20px 120px;
       position: relative;
       z-index: 1;
       width: 100%;
@@ -453,6 +428,16 @@
       box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
     }
 
+    .form-input.valid {
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .form-input.invalid {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+    }
+
     .form-input:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -484,6 +469,22 @@
       margin-top: 6px;
     }
 
+    .validation-message {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      font-size: 0.85em;
+    }
+
+    .validation-message.valid {
+      color: #10b981;
+    }
+
+    .validation-message.invalid {
+      color: #ef4444;
+    }
+
     .cooldown-message {
       color: var(--color-accent-alt);
       font-size: 0.85em;
@@ -493,40 +494,93 @@
       gap: 5px;
     }
 
-    /* Interests - FIXED: Added flex-wrap and proper spacing */
-    .interests-grid {
+    /* NEW: Interest Tags System */
+    .interests-input-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .interests-input {
+      flex: 1;
+    }
+
+    .add-interest-btn {
+      background: rgba(0, 188, 212, 0.2);
+      color: var(--color-accent);
+      border: 1px solid rgba(0, 188, 212, 0.3);
+      border-radius: 10px;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 50px;
+    }
+
+    .add-interest-btn:hover:not(:disabled) {
+      background: rgba(0, 188, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .add-interest-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .interests-tags-container {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 15px;
-      padding: 5px; /* Added padding to prevent glow clipping */
-      overflow: visible; /* Changed from hidden to visible for glow effect */
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      min-height: 60px;
+      margin-bottom: 10px;
     }
 
-    .interest-option {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 8px 12px;
-      color: var(--color-text);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: center;
-      font-size: 0.9em;
-      flex-shrink: 0;
-      min-width: 120px; /* Ensure consistent minimum width */
-    }
-
-    .interest-option:hover {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 10px rgba(0, 188, 212, 0.3); /* Added glow effect */
-    }
-
-    .interest-option.selected {
+    .interest-tag {
       background: rgba(0, 188, 212, 0.2);
-      border-color: var(--color-accent);
+      border: 1px solid rgba(0, 188, 212, 0.3);
+      border-radius: 20px;
+      padding: 6px 12px;
       color: var(--color-accent);
-      box-shadow: 0 0 15px rgba(0, 188, 212, 0.5); /* Enhanced glow for selected */
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .interest-tag:hover {
+      background: rgba(0, 188, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .remove-tag-btn {
+      background: none;
+      border: none;
+      color: var(--color-accent);
+      cursor: pointer;
+      font-size: 0.8em;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .remove-tag-btn:hover {
+      color: #ef4444;
+      transform: scale(1.2);
     }
 
     /* Social Links */
@@ -678,10 +732,15 @@
       color: var(--color-dark);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       background: rgba(0, 188, 212, 0.9);
       transform: translateY(-2px);
       box-shadow: 0 5px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .btn-secondary {
@@ -701,20 +760,22 @@
       border-radius: 8px;
       margin-bottom: 20px;
       display: none;
+      align-items: center;
+      gap: 10px;
     }
 
     .message-box.success {
       background: rgba(0, 200, 83, 0.1);
       border: 1px solid rgba(0, 200, 83, 0.3);
       color: #00c853;
-      display: block;
+      display: flex;
     }
 
     .message-box.error {
       background: rgba(244, 67, 54, 0.1);
       border: 1px solid rgba(244, 67, 54, 0.3);
       color: #f44336;
-      display: block;
+      display: flex;
     }
 
     /* Responsive */
@@ -727,15 +788,13 @@
         padding: 20px;
       }
       
-      /* FIXED: Interests responsive behavior */
-      .interests-grid {
-        justify-content: center; /* Center items on mobile */
+      .interests-input-container {
+        flex-direction: column;
       }
       
-      .interest-option {
-        min-width: 100px; /* Smaller minimum on mobile */
-        font-size: 0.85em;
-        padding: 6px 10px;
+      .add-interest-btn {
+        width: 100%;
+        padding: 12px;
       }
       
       .privacy-options {
@@ -756,13 +815,6 @@
         width: 120px;
         height: 120px;
       }
-      
-      /* FIXED: Even smaller interests on very small screens */
-      .interest-option {
-        min-width: 80px;
-        font-size: 0.8em;
-        padding: 5px 8px;
-      }
     }
   </style>
 </head>
@@ -773,7 +825,7 @@
     <div class="loading-text">Loading profile data...</div>
   </div>
 
-  <!-- Top Navigation (From Updates Page) -->
+  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="nav-left">
       <div class="hamburger" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></div>
@@ -821,7 +873,7 @@
       <div id="messageBox" class="message-box"></div>
 
       <!-- Profile Picture Section -->
-      <div class="profile-picture-section skeleton-loading">
+      <div class="profile-picture-section">
         <div class="profile-picture-container" onclick="document.getElementById('profilePictureInput').click()">
           <div class="profile-picture-preview" id="profilePicturePreview">
             <!-- Profile picture will be loaded here -->
@@ -841,7 +893,7 @@
       </div>
 
       <!-- Edit Form -->
-      <form id="editProfileForm" class="edit-form skeleton-loading">
+      <form id="editProfileForm" class="edit-form">
         <!-- Basic Information -->
         <div class="form-section">
           <div class="section-title">
@@ -880,6 +932,9 @@
           <div class="form-group">
             <label class="form-label" for="username">Username</label>
             <input type="text" id="username" class="form-input" placeholder="Choose a username" maxlength="20" required>
+            <div class="validation-message" id="usernameValidation">
+              <!-- Validation message will appear here -->
+            </div>
             <div class="cooldown-message" id="usernameCooldown" style="display: none;">
               <i class="fas fa-clock"></i>
               <span id="usernameCooldownText"></span>
@@ -906,11 +961,17 @@
             Interests
           </div>
           <div class="form-group">
-            <label class="form-label">Select up to 5 interests</label>
-            <div class="interests-grid" id="interestsGrid">
-              <!-- Interests will be populated by JavaScript -->
+            <label class="form-label">Add your interests (up to 5)</label>
+            <div class="interests-input-container">
+              <input type="text" id="interestInput" class="form-input interests-input" placeholder="Type an interest...">
+              <button type="button" class="add-interest-btn" id="addInterestBtn" disabled>
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
-            <span class="form-help" id="interestsCounter">0/5 selected</span>
+            <div class="interests-tags-container" id="interestsTagsContainer">
+              <!-- Interest tags will be added here -->
+            </div>
+            <span class="form-help" id="interestsCounter">0/5 interests</span>
           </div>
         </div>
 
@@ -1005,23 +1066,23 @@
       getFirestore, 
       getDoc, 
       doc,
-      updateDoc,
+      setDoc,
       collection,
       query,
       where,
-      getDocs,
-      setDoc // ADDED: Import setDoc
+      getDocs
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { 
       getStorage,
       ref,
       uploadBytes,
-      getDownloadURL
+      getDownloadURL,
+      deleteObject
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
     import { 
       onAuthStateChanged, 
       getAuth,
-      signOut // ADDED: Import signOut
+      signOut
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
     // Firebase configuration
@@ -1051,22 +1112,22 @@
     const nicknameCooldown = document.getElementById("nicknameCooldown");
     const usernameCooldownText = document.getElementById("usernameCooldownText");
     const nicknameCooldownText = document.getElementById("nicknameCooldownText");
+    const usernameValidation = document.getElementById("usernameValidation");
     const profilePictureInput = document.getElementById("profilePictureInput");
     const profilePicturePreview = document.getElementById("profilePicturePreview");
     const loadingOverlay = document.getElementById("loadingOverlay");
+    
+    // Interest System Elements
+    const interestInput = document.getElementById("interestInput");
+    const addInterestBtn = document.getElementById("addInterestBtn");
+    const interestsTagsContainer = document.getElementById("interestsTagsContainer");
     
     // Sidebar Elements
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-    // Available interests
-    const availableInterests = [
-      "Animation", "Motion Design", "Visual Effects", "3D Modeling", "Graphic Design",
-      "Video Editing", "Cinematography", "Typography", "UI/UX Design", "Illustration",
-      "Sound Design", "Color Grading", "Storyboarding", "Character Design", "Augmented Reality"
-    ];
-
+    // Global State
     let currentUserId = null;
     let currentUserData = null;
     let selectedInterests = new Set();
@@ -1076,6 +1137,9 @@
     let nicknameLastChanged = null;
     let profileImageFile = null;
     let sidebarOpen = false;
+    let usernameCheckTimeout = null;
+    let isUsernameAvailable = false;
+    let isCheckingUsername = false;
 
     // Sidebar functions
     function toggleSidebar() {
@@ -1112,50 +1176,7 @@
     function hideLoading() {
       setTimeout(() => {
         loadingOverlay.classList.add('hidden');
-        // Add fade-in animation to content
-        document.querySelectorAll('.skeleton-loading').forEach(el => {
-          el.style.animationDelay = '0.1s';
-        });
       }, 300);
-    }
-
-    // Initialize interests grid
-    function initializeInterests() {
-      const interestsGrid = document.getElementById("interestsGrid");
-      interestsGrid.innerHTML = '';
-
-      availableInterests.forEach(interest => {
-        const interestOption = document.createElement('div');
-        interestOption.className = 'interest-option';
-        interestOption.textContent = interest;
-        interestOption.dataset.interest = interest;
-
-        if (selectedInterests.has(interest)) {
-          interestOption.classList.add('selected');
-        }
-
-        interestOption.addEventListener('click', () => {
-          if (interestOption.classList.contains('selected')) {
-            interestOption.classList.remove('selected');
-            selectedInterests.delete(interest);
-          } else {
-            if (selectedInterests.size >= 5) {
-              showMessage("You can select up to 5 interests", 'error');
-              return;
-            }
-            interestOption.classList.add('selected');
-            selectedInterests.add(interest);
-          }
-          updateInterestsCounter();
-        });
-
-        interestsGrid.appendChild(interestOption);
-      });
-    }
-
-    // Update interests counter
-    function updateInterestsCounter() {
-      interestsCounter.textContent = `${selectedInterests.size}/5 selected`;
     }
 
     // Update bio counter
@@ -1215,29 +1236,129 @@
       }
     }
 
-    // Get user data from Firestore - FIXED: Check multiple paths
+    // Get user data from Firestore
     async function getUserData(userId) {
       const appId = 'motion-flow-v1';
       
-      // Try multiple possible paths
-      const possiblePaths = [
-        doc(db, "artifacts", appId, "users", userId, "profile", "settings"), // From signup
-        doc(db, "users", userId) // Alternative path
-      ];
+      // Always use the signup path
+      const userDocRef = doc(db, "artifacts", appId, "users", userId, "profile", "settings");
       
-      for (const userDocRef of possiblePaths) {
-        try {
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            console.log('User data found at:', userDocRef.path);
-            return { data: userDoc.data(), path: userDocRef };
-          }
-        } catch (err) {
-          console.log('Path not found:', userDocRef.path, err.message);
+      try {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          console.log('User data found at:', userDocRef.path);
+          return { data: userDoc.data(), path: userDocRef };
         }
+      } catch (err) {
+        console.log('Error getting user data:', err.message);
       }
       
       return null;
+    }
+
+    // Validate username with debounce
+    async function validateUsername(username) {
+      if (!username || username.length < 3) {
+        updateUsernameValidation(false, "Username must be at least 3 characters");
+        return false;
+      }
+      
+      if (username.length > 20) {
+        updateUsernameValidation(false, "Username cannot exceed 20 characters");
+        return false;
+      }
+      
+      // Check if username contains only allowed characters
+      const usernameRegex = /^[a-zA-Z0-9_]+$/;
+      if (!usernameRegex.test(username)) {
+        updateUsernameValidation(false, "Username can only contain letters, numbers, and underscores");
+        return false;
+      }
+      
+      // If username hasn't changed, it's valid
+      if (currentUserData && username === currentUserData.username) {
+        updateUsernameValidation(true, "Username is available");
+        return true;
+      }
+      
+      // Check cooldown
+      if (!canChangeUsername) {
+        updateUsernameValidation(false, "Username can only be changed every 20 days");
+        return false;
+      }
+      
+      // Check availability in database
+      return await checkUsernameAvailability(username);
+    }
+
+    // Update username validation UI
+    function updateUsernameValidation(isValid, message) {
+      const usernameInput = document.getElementById("username");
+      const validationMessage = document.getElementById("usernameValidation");
+      
+      usernameInput.classList.remove('valid', 'invalid');
+      validationMessage.className = 'validation-message';
+      validationMessage.innerHTML = '';
+      
+      if (isValid) {
+        usernameInput.classList.add('valid');
+        validationMessage.classList.add('valid');
+        validationMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        isUsernameAvailable = true;
+      } else {
+        usernameInput.classList.add('invalid');
+        validationMessage.classList.add('invalid');
+        validationMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        isUsernameAvailable = false;
+      }
+      
+      // Enable/disable save button based on username validity
+      updateSaveButtonState();
+    }
+
+    // Check username availability in database
+    async function checkUsernameAvailability(username) {
+      if (!username || username === currentUserData?.username) {
+        updateUsernameValidation(true, "Username is available");
+        return true;
+      }
+      
+      isCheckingUsername = true;
+      
+      try {
+        const appId = 'motion-flow-v1';
+        const usersRef = collection(db, "artifacts", appId, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+        
+        const isAvailable = querySnapshot.empty;
+        
+        if (isAvailable) {
+          updateUsernameValidation(true, "Username is available");
+        } else {
+          updateUsernameValidation(false, "Username is already taken");
+        }
+        
+        isCheckingUsername = false;
+        return isAvailable;
+      } catch (error) {
+        console.error("Error checking username:", error);
+        updateUsernameValidation(false, "Error checking username availability");
+        isCheckingUsername = false;
+        return false;
+      }
+    }
+
+    // Update save button state
+    function updateSaveButtonState() {
+      const username = document.getElementById("username").value.trim();
+      const nickname = document.getElementById("nickname").value.trim();
+      
+      // Basic validation
+      const hasValidUsername = username.length >= 3 && isUsernameAvailable && !isCheckingUsername;
+      const hasValidNickname = nickname.length > 0;
+      
+      saveButton.disabled = !(hasValidUsername && hasValidNickname);
     }
 
     // Load user data
@@ -1271,6 +1392,7 @@
           // Set interests
           if (currentUserData.interests && Array.isArray(currentUserData.interests)) {
             selectedInterests = new Set(currentUserData.interests);
+            renderInterestTags();
           }
           
           // Set privacy settings
@@ -1292,14 +1414,18 @@
           checkCooldowns(currentUserData);
           
           // Initialize UI
-          initializeInterests();
-          updateInterestsCounter();
           updateBioCounter();
+          updateInterestsCounter();
+          
+          // Validate current username
+          if (currentUserData.username) {
+            updateUsernameValidation(true, "Username is available");
+          }
           
           // Hide loading after data is loaded
           hideLoading();
         } else {
-          console.error("User data not found in any path");
+          console.error("User data not found");
           showMessage("Error loading profile data. Please try again.", 'error');
           hideLoading();
         }
@@ -1329,14 +1455,14 @@
       
       profileImageFile = file;
       
-      // Preview the image
+      // Preview the image immediately
       const reader = new FileReader();
       reader.onload = function(e) {
         profilePicturePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Picture">`;
       };
       reader.readAsDataURL(file);
       
-      showMessage("Profile picture selected. Click 'Save Changes' to update.", 'success');
+      showMessage("Profile picture selected. Click 'Save Changes' to upload.", 'success');
     }
 
     // Upload profile picture to Firebase Storage
@@ -1344,6 +1470,16 @@
       if (!profileImageFile) return null;
       
       try {
+        // Delete old profile picture if it exists
+        if (currentUserData?.profileImage) {
+          try {
+            const oldImageRef = ref(storage, currentUserData.profileImage);
+            await deleteObject(oldImageRef);
+          } catch (error) {
+            console.log("No old image to delete or error deleting:", error);
+          }
+        }
+        
         // Create a reference to the profile picture
         const storageRef = ref(storage, `profile-pictures/${userId}/${Date.now()}_${profileImageFile.name}`);
         
@@ -1360,55 +1496,63 @@
       }
     }
 
-    // Check username availability
-    async function checkUsernameAvailability(username) {
-      if (!username || username === currentUserData.username) return true;
+    // Interest System Functions
+    function addInterest() {
+      const interest = interestInput.value.trim();
       
-      try {
-        // Check across multiple paths
-        const appId = 'motion-flow-v1';
-        const usersRef = collection(db, "artifacts", appId, "users");
-        const q = query(usersRef, where("username", "==", username));
-        const querySnapshot = await getDocs(q);
-        
-        return querySnapshot.empty;
-      } catch (error) {
-        console.error("Error checking username:", error);
-        return false;
+      if (!interest) {
+        showMessage("Please enter an interest", 'error');
+        return;
       }
+      
+      if (selectedInterests.size >= 5) {
+        showMessage("You can only add up to 5 interests", 'error');
+        return;
+      }
+      
+      if (selectedInterests.has(interest)) {
+        showMessage("This interest is already added", 'error');
+        return;
+      }
+      
+      selectedInterests.add(interest);
+      renderInterestTags();
+      interestInput.value = '';
+      updateAddInterestButton();
+      updateInterestsCounter();
     }
 
-    // Save user data to Firestore - FIXED: Use correct path and better error handling
-    async function saveUserData(userId, updateData) {
-      const appId = 'motion-flow-v1';
+    function removeInterest(interest) {
+      selectedInterests.delete(interest);
+      renderInterestTags();
+      updateInterestsCounter();
+    }
+
+    function renderInterestTags() {
+      interestsTagsContainer.innerHTML = '';
       
-      // Always use the signup path for consistency
-      const userDocRef = doc(db, "artifacts", appId, "users", userId, "profile", "settings");
+      selectedInterests.forEach(interest => {
+        const tag = document.createElement('div');
+        tag.className = 'interest-tag';
+        tag.innerHTML = `
+          <span>${interest}</span>
+          <button class="remove-tag-btn" onclick="removeInterest('${interest}')">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        interestsTagsContainer.appendChild(tag);
+      });
+    }
+
+    function updateAddInterestButton() {
+      const interest = interestInput.value.trim();
+      const isMaxReached = selectedInterests.size >= 5;
       
-      try {
-        // Try to update first
-        await updateDoc(userDocRef, updateData);
-        console.log('Profile updated successfully at:', userDocRef.path);
-      } catch (updateError) {
-        console.log('Update failed, trying to set:', updateError);
-        
-        // If update fails, try to set the document (might not exist yet)
-        try {
-          await setDoc(userDocRef, updateData);
-          console.log('Profile created successfully at:', userDocRef.path);
-        } catch (setError) {
-          console.error('Both update and set failed:', setError);
-          
-          // Check for permission denied error
-          if (setError.code === 'permission-denied') {
-            throw new Error('Permission denied: You do not have permission to update this profile. Please contact support.');
-          } else {
-            throw new Error(`Database error: ${setError.message}`);
-          }
-        }
-      }
-      
-      return userDocRef;
+      addInterestBtn.disabled = !interest || isMaxReached || selectedInterests.has(interest);
+    }
+
+    function updateInterestsCounter() {
+      interestsCounter.textContent = `${selectedInterests.size}/5 interests`;
     }
 
     // Setup event listeners
@@ -1430,7 +1574,37 @@
         });
       });
       
-      // Form submission - FIXED: Better validation and error handling
+      // Interest system
+      interestInput.addEventListener('input', updateAddInterestButton);
+      interestInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addInterest();
+        }
+      });
+      
+      addInterestBtn.addEventListener('click', addInterest);
+      
+      // Username validation with debounce
+      const usernameInput = document.getElementById("username");
+      usernameInput.addEventListener('input', () => {
+        const username = usernameInput.value.trim();
+        
+        // Clear previous timeout
+        if (usernameCheckTimeout) {
+          clearTimeout(usernameCheckTimeout);
+        }
+        
+        // Set new timeout for debounce
+        usernameCheckTimeout = setTimeout(async () => {
+          await validateUsername(username);
+        }, 500);
+      });
+      
+      // Nickname input
+      document.getElementById("nickname").addEventListener('input', updateSaveButtonState);
+      
+      // Form submission
       editForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         
@@ -1445,65 +1619,35 @@
         const profileVisibility = document.getElementById("profileVisibility").value;
         const showEmail = document.getElementById("showEmail").checked;
         
-        // FIXED: Validate required fields
-        if (!username) {
-          showMessage("Username is required", 'error');
+        // Final validation
+        if (!isUsernameAvailable || isCheckingUsername) {
+          showMessage("Please wait for username validation to complete", 'error');
           return;
         }
         
-        if (!nickname) {
-          showMessage("Nickname is required", 'error');
-          return;
-        }
-        
-        // Validate username if changed
-        if (username !== currentUserData.username) {
-          if (!canChangeUsername) {
-            showMessage("Username can only be changed every 20 days", 'error');
-            return;
-          }
-          
-          if (username.length < 3) {
-            showMessage("Username must be at least 3 characters", 'error');
-            return;
-          }
-          
-          if (username.length > 20) {
-            showMessage("Username cannot exceed 20 characters", 'error');
-            return;
-          }
-          
-          const isAvailable = await checkUsernameAvailability(username);
-          if (!isAvailable) {
-            showMessage("Username is already taken", 'error');
-            return;
-          }
-        }
-        
-        // Validate nickname if changed
-        if (nickname !== currentUserData.nickname) {
-          if (!canChangeNickname) {
-            showMessage("Nickname can only be changed every 10 days", 'error');
-            return;
-          }
-          
-          if (nickname.length > 30) {
-            showMessage("Nickname cannot exceed 30 characters", 'error');
-            return;
-          }
-        }
-        
-        // Validate interests (optional, not required)
-        if (selectedInterests.size > 5) {
-          showMessage("You can select up to 5 interests", 'error');
+        if (!username || !nickname) {
+          showMessage("Username and nickname are required", 'error');
           return;
         }
         
         // Show loading
+        const originalButtonText = saveButton.innerHTML;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         saveButton.disabled = true;
         
         try {
+          // Upload profile picture if selected
+          let profileImageUrl = currentUserData?.profileImage || currentUserData?.profilePicture;
+          if (profileImageFile) {
+            try {
+              profileImageUrl = await uploadProfilePicture(currentUserId);
+              showMessage("Profile picture uploaded successfully", 'success');
+            } catch (error) {
+              console.error("Failed to upload profile picture:", error);
+              showMessage("Profile picture upload failed, but other changes will be saved", 'error');
+            }
+          }
+          
           // Prepare update data
           const updateData = {
             fullName: fullName || null,
@@ -1520,68 +1664,61 @@
               showEmail: showEmail
             },
             updatedAt: new Date().toISOString(),
-            // Ensure required fields are always set
             username: username,
             nickname: nickname
           };
           
-          // Upload profile picture if selected
-          if (profileImageFile) {
-            try {
-              const profileImageUrl = await uploadProfilePicture(currentUserId);
-              updateData.profileImage = profileImageUrl;
-            } catch (error) {
-              console.error("Failed to upload profile picture:", error);
-              showMessage("Profile picture upload failed, but other changes saved", 'error');
-            }
+          // Add profile image URL if available
+          if (profileImageUrl) {
+            updateData.profileImage = profileImageUrl;
           }
           
-          // Update username if changed
+          // Update username change timestamp if changed
           if (username !== currentUserData.username && canChangeUsername) {
             updateData.lastChanged = {
-              ...currentUserData.lastChanged,
+              ...(currentUserData.lastChanged || {}),
               username: new Date().toISOString()
             };
           }
           
-          // Update nickname if changed
+          // Update nickname change timestamp if changed
           if (nickname !== currentUserData.nickname && canChangeNickname) {
             updateData.lastChanged = {
-              ...(updateData.lastChanged || currentUserData.lastChanged),
+              ...(updateData.lastChanged || currentUserData.lastChanged || {}),
               nickname: new Date().toISOString()
             };
           }
           
-          // Ensure lastChanged structure exists
-          if (!updateData.lastChanged && currentUserData.lastChanged) {
-            updateData.lastChanged = currentUserData.lastChanged;
-          }
+          // FIXED: Save to Firestore with merge: true
+          const appId = 'motion-flow-v1';
+          const userDocRef = doc(db, "artifacts", appId, "users", currentUserId, "profile", "settings");
           
-          // FIXED: Save to Firestore with better error handling
-          await saveUserData(currentUserId, updateData);
+          await setDoc(userDocRef, updateData, { merge: true });
           
           showMessage("Profile updated successfully!", 'success');
-          saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+          
+          // Reset button state
+          saveButton.innerHTML = originalButtonText;
           saveButton.disabled = false;
           
           // Update current user data
           currentUserData = { ...currentUserData, ...updateData };
           
-          // Redirect back to profile after 2 seconds
+          // Redirect back to profile after 1.5 seconds
           setTimeout(() => {
             window.location.href = 'profile.html';
-          }, 2000);
+          }, 1500);
           
         } catch (error) {
           console.error("Error updating profile:", error);
           
-          // FIXED: Reset button state on error
-          saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+          // Reset button state
+          saveButton.innerHTML = originalButtonText;
           saveButton.disabled = false;
           
           // Show specific error messages
-          if (error.message.includes('permission-denied') || error.message.includes('Permission denied')) {
-            showMessage("Permission denied: You don't have access to update this profile. Please contact support.", 'error');
+          if (error.code === 'permission-denied') {
+            showMessage("Permission denied: You don't have permission to update this profile. Please contact support.", 'error');
           } else {
             showMessage("Error updating profile: " + error.message, 'error');
           }
@@ -1597,7 +1734,7 @@
         
         // Check if user has completed profile setup
         const userDataResult = await getUserData(currentUserId);
-        if (!userDataResult || !userDataResult.data.profileCompleted) {
+        if (!userDataResult) {
           window.location.href = 'profile-setup.html';
           return;
         }
@@ -1614,11 +1751,16 @@
       console.log('Edit profile page loaded');
       // Show loading immediately while waiting for auth
       showLoading();
+      
+      // Initialize interest button state
+      updateAddInterestButton();
     });
 
     // Make functions available globally
     window.toggleSidebar = toggleSidebar;
     window.logout = logout;
+    window.addInterest = addInterest;
+    window.removeInterest = removeInterest;
   </script>
 </body>
-    </html>
+  </html>
