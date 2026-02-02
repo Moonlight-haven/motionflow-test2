@@ -1,0 +1,3744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Updates - Motion-Flow</title>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --color-dark: #0a0a12;
+      --color-bg: #0f0f1a;
+      --color-bg-light: #1a1a2e;
+      --color-primary: #00bcd4;
+      --color-accent: #00bcd4;
+      --color-accent-alt: #f97316;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-text: #e2e8f0;
+      --color-text-muted: #94a3b8;
+      --font-heading: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      
+      --bg-card: #1a1a2e;
+      --bg-input: #0f111a;
+      --border: rgba(0, 188, 212, 0.2);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --radius-sm: 12px;
+      --radius-lg: 20px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: var(--font-body);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--color-bg) 0%, #0a0b14 100%);
+      color: var(--color-text);
+      overflow-x: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      touch-action: pan-y;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 188, 212, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* --- TOP NAVIGATION --- */
+    .top-nav {
+      height: 70px;
+      background: rgba(10, 10, 18, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+      touch-action: pan-y;
+      max-width: 100%;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .nav-left { 
+      display: flex; 
+      align-items: center; 
+      gap: 18px; 
+    }
+    
+    .hamburger {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 188, 212, 0.1);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: var(--color-primary);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamburger:hover {
+      background: rgba(0, 188, 212, 0.2);
+      transform: rotate(90deg);
+    }
+
+    .brand {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      /* Standard property first, then vendor prefixes */
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      /* Fallback for non-webkit browsers */
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      display: none;
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    .sidebar-overlay.active { 
+      display: block; 
+      opacity: 1;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: -320px;
+      top: 0;
+      width: 300px;
+      height: 100%;
+      background: rgba(10, 10, 18, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 200;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      touch-action: pan-y;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-user-info h3 {
+      font-size: 1.1rem;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-username {
+      color: var(--color-primary);
+      font-size: 0.75rem;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .sidebar-menu { 
+      list-style: none; 
+    }
+    
+    .sidebar-menu li {
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.95rem;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    
+    .sidebar-menu li a {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+    }
+    
+    .sidebar-menu li:hover { 
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      transform: translateX(5px);
+    }
+
+    .sidebar-menu li i {
+      width: 24px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+      opacity: 0.3;
+    }
+
+    /* --- ADMIN MODALS --- */
+    .admin-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .admin-modal-overlay.active {
+      display: flex;
+    }
+
+    .admin-modal-content {
+      background: var(--color-bg-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 800px;
+      width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 2px solid var(--color-primary);
+      box-shadow: 0 10px 40px rgba(0, 188, 212, 0.3);
+      animation: modalSlideIn 0.3s ease;
+      position: relative;
+    }
+
+    .back-to-home-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 3001;
+      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+    }
+
+    .back-to-home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 188, 212, 0.4);
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .admin-form-group {
+      margin-bottom: 20px;
+    }
+
+    .admin-form-label {
+      display: block;
+      color: var(--color-text);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .admin-form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .admin-form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+    }
+
+    .admin-form-textarea {
+      min-height: 100px;
+      resize: vertical;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Post Size Selector */
+    .post-size-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .post-size-option {
+      padding: 12px;
+      background: rgba(0, 188, 212, 0.1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .post-size-option:hover {
+      background: rgba(0, 188, 212, 0.2);
+    }
+
+    .post-size-option.selected {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .post-size-option i {
+      font-size: 1.2rem;
+    }
+
+    /* Media Type Selector */
+    .media-type-selector {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .media-type-option {
+      padding: 12px;
+      background: rgba(0, 188, 212, 0.1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .media-type-option:hover {
+      background: rgba(0, 188, 212, 0.2);
+    }
+
+    .media-type-option.selected {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .media-type-option i {
+      font-size: 1.2rem;
+    }
+
+    /* Media URL Input */
+    .media-url-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .media-url-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-size: 0.95rem;
+    }
+
+    .add-media-url-btn {
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+
+    .add-media-url-btn:hover {
+      background: rgba(0, 188, 212, 0.2);
+    }
+
+    .add-media-url-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .admin-form-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .admin-form-submit {
+      flex: 1;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .admin-form-submit.loading {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .admin-form-submit.loading:after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin: -10px 0 0 -10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .admin-form-cancel {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .admin-form-cancel:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-primary);
+    }
+
+    /* Upload Status */
+    .upload-status {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin: 20px 0;
+      font-weight: 600;
+    }
+
+    .upload-status.success {
+      display: flex;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+
+    .upload-status.error {
+      display: flex;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-error);
+      border: 1px solid var(--color-error);
+    }
+
+    .upload-status.loading {
+      display: flex;
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+
+    /* Manage Updates Container */
+    .manage-updates-container {
+      background: rgba(10, 10, 18, 0.8);
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      margin-top: 30px;
+      border: 1px solid rgba(0, 188, 212, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .manage-updates-container h3 {
+      color: var(--color-primary);
+      font-family: var(--font-heading);
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(0, 188, 212, 0.3);
+      font-size: 1.3rem;
+    }
+
+    #admin-updates-list {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    #admin-updates-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #admin-updates-list::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+
+    #admin-updates-list::-webkit-scrollbar-thumb {
+      background: rgba(0, 188, 212, 0.5);
+      border-radius: 4px;
+    }
+
+    #admin-updates-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 188, 212, 0.8);
+    }
+
+    .admin-update-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-update-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(0, 188, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .admin-update-info {
+      flex: 1;
+    }
+
+    .admin-update-title {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+      font-size: 1rem;
+    }
+
+    .admin-update-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    .admin-update-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .edit-update-btn, .delete-update-btn {
+      padding: 8px 15px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .edit-update-btn {
+      background: rgba(0, 188, 212, 0.2);
+      color: var(--color-primary);
+      border: 1px solid rgba(0, 188, 212, 0.3);
+    }
+
+    .edit-update-btn:hover {
+      background: rgba(0, 188, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .delete-update-btn {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--color-error);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .delete-update-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Horizontal Separator */
+    .form-separator {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.3), transparent);
+      margin: 30px 0;
+      border: none;
+    }
+
+    /* Success Popup */
+    .success-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-bg-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      border: 2px solid var(--color-success);
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+      z-index: 5000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    .success-popup.active {
+      display: flex;
+    }
+
+    .success-icon {
+      font-size: 3.5em;
+      color: var(--color-success);
+      margin-bottom: 15px;
+    }
+
+    .success-message {
+      color: var(--color-text);
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+
+    /* --- Main Content --- */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 90px;
+      padding-bottom: 100px;
+    }
+
+    .updates-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 0 10px;
+    }
+
+    .updates-header h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(1.8em, 5vw, 2.8em);
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+      line-height: 1.2;
+    }
+
+    .updates-header p {
+      color: var(--color-text-muted);
+      font-size: clamp(0.9em, 3vw, 1.1em);
+      opacity: 0.8;
+      line-height: 1.5;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* REMOVED Admin Controls Section - Admin posts only through sidebar */
+
+    /* Pinterest-Style Masonry Layout */
+    .updates-container {
+      column-count: 3;
+      column-gap: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .updates-container {
+        column-count: 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .updates-container {
+        column-count: 1;
+      }
+    }
+
+    /* Update Card */
+    .update-card {
+      background: var(--color-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      break-inside: avoid;
+      margin-bottom: 25px;
+      page-break-inside: avoid;
+    }
+
+    /* Post Size Classes */
+    .update-card.size-default {
+      /* Default size - no special styling */
+    }
+
+    .update-card.size-1-1 {
+      aspect-ratio: 1/1;
+    }
+
+    .update-card.size-16-9 {
+      aspect-ratio: 16/9;
+    }
+
+    .update-card.size-4-5 {
+      aspect-ratio: 4/5;
+    }
+
+    .update-card.size-9-16 {
+      aspect-ratio: 9/16;
+    }
+
+    .update-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 188, 212, 0.3);
+      box-shadow: 0 15px 40px rgba(0, 188, 212, 0.2);
+    }
+
+    /* Media Carousel */
+    .update-media-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+      background: var(--color-dark);
+      cursor: pointer;
+      aspect-ratio: 16/9;
+    }
+
+    .update-card.size-1-1 .update-media-wrapper {
+      aspect-ratio: 1/1;
+    }
+
+    .update-card.size-16-9 .update-media-wrapper {
+      aspect-ratio: 16/9;
+    }
+
+    .update-card.size-4-5 .update-media-wrapper {
+      aspect-ratio: 4/5;
+    }
+
+    .update-card.size-9-16 .update-media-wrapper {
+      aspect-ratio: 9/16;
+    }
+
+    .update-media {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .update-card:hover .update-media {
+      transform: scale(1.05);
+    }
+
+    /* Video Play Button - Center Overlay */
+    .video-play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .update-media-wrapper:hover .video-play-overlay {
+      opacity: 1;
+    }
+
+    .video-play-icon {
+      width: 70px;
+      height: 70px;
+      background: rgba(0, 188, 212, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+      transition: var(--transition);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .video-play-overlay:hover .video-play-icon {
+      background: rgba(0, 188, 212, 1);
+      transform: scale(1.1);
+    }
+
+    /* Inline Video Player */
+    .video-player-inline {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px 16px 0 0;
+      background: #000;
+    }
+
+    /* Carousel Navigation - Always visible */
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 3;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .carousel-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      font-size: 1.1rem;
+      z-index: 4;
+    }
+
+    .carousel-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: scale(1.2);
+    }
+
+    .carousel-dots {
+      position: absolute;
+      bottom: 15px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    .carousel-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .carousel-dot.active {
+      background: var(--color-primary);
+      transform: scale(1.3);
+    }
+
+    .video-play-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      z-index: 3;
+      backdrop-filter: blur(10px);
+    }
+
+    .video-play-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: translateY(-2px);
+    }
+
+    .update-type-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 700;
+      z-index: 3;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      backdrop-filter: blur(5px);
+    }
+
+    /* Update Info */
+    .update-info {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .update-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .update-title h3 {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+      line-height: 1.3;
+    }
+
+    .update-date {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .update-description {
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      margin-bottom: 15px;
+      font-size: 0.95em;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .update-description a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      word-break: break-all;
+    }
+
+    .update-description a:hover {
+      text-decoration: underline;
+      color: var(--color-accent-alt);
+    }
+
+    /* User Info - SIMPLIFIED (Like Homepage) */
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .user-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .username {
+      font-size: 0.95em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Clickable username */
+    .clickable-username {
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: var(--color-primary);
+    }
+
+    .clickable-username:hover {
+      background: rgba(0, 188, 212, 0.1);
+      text-decoration: underline;
+    }
+
+    /* Admin Badge */
+    .admin-badge {
+      background: linear-gradient(135deg, var(--color-warning), #d97706);
+      color: white;
+      font-size: 0.65em;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 5px;
+    }
+
+    .time {
+      font-size: 0.85em;
+      color: var(--color-text-muted);
+    }
+
+    /* Update Actions */
+    .update-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .share-btn, .comment-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .share-btn {
+      background: linear-gradient(135deg, var(--color-success), #059669);
+      color: white;
+    }
+
+    .share-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .comment-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .comment-btn:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    .comment-count {
+      background: var(--color-primary);
+      color: white;
+      font-size: 0.7em;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 5px;
+    }
+
+    /* Comments Section */
+    .comments-section {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .comments-section.active {
+      display: block;
+    }
+
+    .comments-title {
+      font-size: 1em;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comments-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+      padding-right: 10px;
+    }
+
+    .comment-item {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--color-primary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .comment-avatar:hover {
+      transform: scale(1.1);
+      border-color: var(--color-accent);
+    }
+
+    .comment-author {
+      font-weight: 600;
+      font-size: 0.9em;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .comment-author:hover {
+      background: rgba(0, 188, 212, 0.1);
+      text-decoration: underline;
+    }
+
+    .comment-time {
+      font-size: 0.75em;
+      color: var(--color-text-muted);
+      margin-left: auto;
+    }
+
+    .comment-text {
+      font-size: 0.9em;
+      line-height: 1.5;
+      color: var(--color-text);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .add-comment {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .comment-input {
+      flex: 1;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--color-text);
+      font-size: 0.9em;
+      resize: none;
+      min-height: 40px;
+      max-height: 100px;
+      font-family: var(--font-body);
+    }
+
+    .comment-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+    }
+
+    .comment-submit {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      white-space: nowrap;
+      font-family: var(--font-body);
+    }
+
+    .comment-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .comment-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* --- BOTTOM NAVIGATION --- */
+    .bottom-nav {
+      height: 60px;
+      background: rgba(10, 10, 18, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 188, 212, 0.3);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      overflow: hidden;
+      max-width: 100%;
+      width: 100%;
+      box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      gap: 4px;
+      text-decoration: none;
+      padding: 8px;
+      border-radius: 8px;
+      transition: var(--transition);
+      position: relative;
+      min-width: 60px;
+      flex: 1;
+      text-align: center;
+      max-width: 25%;
+    }
+
+    .nav-item.active {
+      color: var(--color-primary);
+    }
+
+    .nav-item.active i {
+      color: var(--color-primary);
+      text-shadow: 0 0 15px var(--color-primary);
+      transform: translateY(-2px);
+    }
+
+    .nav-item:hover:not(.active) {
+      color: var(--color-text);
+    }
+
+    .nav-item i {
+      font-size: 1.3rem;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    /* FIXED: Notification Dot Alignment */
+    .notification-dot {
+      position: absolute;
+      top: 0;
+      right: 5px;
+      width: 10px;
+      height: 10px;
+      background: var(--color-error);
+      border-radius: 50%;
+      display: none;
+      animation: pulse 2s infinite;
+      border: 2px solid rgba(10, 10, 18, 0.95);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+      z-index: 101;
+    }
+
+    /* Specific positioning for the Updates icon */
+    .nav-item.active .notification-dot,
+    .nav-item:has(a[href="updates.html"]) .notification-dot {
+      top: 2px;
+      right: 8px;
+    }
+
+    .notification-dot.active {
+      display: block;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 17, 30, 0.95);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 188, 212, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      z-index: 2001;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideUp 0.3s ease;
+      max-width: 90%;
+      overflow-x: hidden;
+    }
+
+    .toast.show {
+      display: flex;
+    }
+
+    .toast.success {
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .toast.error {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Loading Animation */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 20px;
+      text-align: center;
+      width: 100%;
+      min-height: 400px;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(0, 188, 212, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--color-accent);
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      color: var(--color-text-muted);
+      font-size: 1.1em;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--color-text-muted);
+      break-inside: avoid;
+      width: 100%;
+    }
+
+    .empty-icon {
+      font-size: 4em;
+      color: rgba(0, 188, 212, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: var(--color-text);
+    }
+
+    .empty-state p {
+      font-size: 1.1em;
+      opacity: 0.8;
+    }
+
+    /* Fullscreen Image Viewer */
+    .image-viewer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .image-viewer-overlay.active {
+      display: flex;
+    }
+
+    .image-viewer-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+      text-align: center;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .image-viewer-img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .image-viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 2;
+      opacity: 1;
+    }
+
+    .image-viewer-btn {
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      font-size: 1.2rem;
+    }
+
+    .image-viewer-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: scale(1.2);
+    }
+
+    .image-viewer-close {
+      position: absolute;
+      top: -50px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .image-viewer-close:hover {
+      background: rgba(239, 68, 68, 0.9);
+      transform: scale(1.2);
+    }
+
+    .image-viewer-dots {
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .image-viewer-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .image-viewer-dot.active {
+      background: var(--color-primary);
+      transform: scale(1.3);
+    }
+
+    /* Video Modal */
+    .video-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+    }
+
+    .video-modal.active {
+      display: flex;
+    }
+
+    .video-modal-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .video-modal-video {
+      width: 100%;
+      max-height: 80vh;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .video-close-btn {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .video-close-btn:hover {
+      background: rgba(239, 68, 68, 0.9);
+      transform: scale(1.2);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .top-nav {
+        height: 65px;
+        padding: 0 1rem;
+      }
+
+      .hamburger {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
+
+      .brand {
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        padding: 70px 15px 100px;
+      }
+
+      .updates-container {
+        column-count: 1;
+      }
+
+      .update-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .back-to-home-btn {
+        top: 10px;
+        right: 10px;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+      }
+
+      .admin-modal-content {
+        max-width: 95%;
+        padding: 20px;
+      }
+
+      .media-type-selector,
+      .post-size-selector {
+        grid-template-columns: 1fr;
+      }
+
+      .notification-dot {
+        top: 2px;
+        right: 6px;
+      }
+
+      .admin-update-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .admin-update-actions {
+        align-self: flex-end;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .top-nav {
+        height: 60px;
+        padding: 0 0.8rem;
+      }
+
+      .hamburger {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+      }
+
+      .brand {
+        font-size: 1rem;
+      }
+
+      .main-content {
+        padding: 65px 10px 90px;
+      }
+
+      .bottom-nav {
+        height: 55px;
+      }
+
+      .nav-item {
+        padding: 6px;
+        font-size: 0.65rem;
+      }
+
+      .nav-item i {
+        font-size: 1.2rem;
+      }
+
+      .back-to-home-btn {
+        top: 5px;
+        right: 5px;
+        padding: 8px 12px;
+        font-size: 0.7rem;
+      }
+
+      .notification-dot {
+        top: 1px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Success Popup -->
+  <div class="success-popup" id="successPopup">
+    <div class="success-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h2 class="success-message">Update Posted Successfully!</h2>
+    <button class="admin-form-submit" onclick="closeSuccessPopup()">
+      <i class="fas fa-check"></i> OK
+    </button>
+  </div>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <div class="hamburger" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></div>
+      <a href="#" class="brand" id="brandLogo">MOTION-FLOW</a>
+    </div>
+  </nav>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-user-info">
+        <h3 style="font-size: 1.5rem; color: var(--color-primary); text-align: center; width: 100%;">
+          MOTION FLOW
+        </h3>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li><a href="../homepage.html"><i class="fa-solid fa-home"></i> Home</a></li>
+      <li><a href="../apk/apk.html"><i class="fa-solid fa-download"></i> APK Share</a></li>
+      <li><a href="../Users/users.html"><i class="fa-solid fa-users"></i> Users</a></li>
+      <li><a href="../Chats/chats.html"><i class="fa-solid fa-comments"></i> Messages</a></li>
+      <!-- ADMIN SECTION REMOVED FROM SIDEBAR -->
+      <li><a href="../Settings/settings.html"><i class="fa-solid fa-cog"></i> Settings</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+
+    <ul class="sidebar-menu">
+      <li onclick="logout()" style="color: #ef4444; cursor: pointer;"><i class="fa-solid fa-right-from-bracket"></i> Logout</li>
+    </ul>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="admin-modal-overlay" id="adminLoginModal">
+    <div class="admin-modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--color-primary); text-align: center;">
+        <i class="fa-solid fa-lock"></i> Admin Login
+      </h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-form-label">Email</label>
+        <input type="email" id="adminEmail" class="admin-form-input" placeholder="motionflow.admins@gmail.com">
+      </div>
+      
+      <div class="admin-form-group">
+        <label class="admin-form-label">Password</label>
+        <input type="password" id="adminPassword" class="admin-form-input" placeholder="MOTION-FLOW-ADMIN">
+      </div>
+      
+      <div class="admin-form-group" id="twoFactorSection" style="display: none;">
+        <label class="admin-form-label">2FA Access Code</label>
+        <input type="text" id="admin2FACode" class="admin-form-input" placeholder="MF-ADMIN-2026">
+        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+          Check Firebase path: admin/accessCode
+        </p>
+      </div>
+      
+      <div class="admin-form-buttons">
+        <button class="admin-form-submit" id="adminLoginSubmit">Login</button>
+        <button class="admin-form-cancel" onclick="closeAdminModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Post Modal -->
+  <div class="admin-modal-overlay" id="adminPostModal">
+    <button class="back-to-home-btn" onclick="closePostModal()">
+      <i class="fa-solid fa-arrow-left"></i> Back to Updates
+    </button>
+    
+    <div class="admin-modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--color-primary); text-align: center;" id="postModalTitle">
+        <i class="fa-solid fa-plus"></i> Create New Update
+      </h2>
+      
+      <!-- Upload Status Indicator -->
+      <div class="upload-status" id="uploadStatus">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span id="uploadStatusText">Posting update...</span>
+      </div>
+      
+      <form id="postUploadForm">
+        <div class="admin-form-group">
+          <label class="admin-form-label">Admin Name *</label>
+          <input type="text" id="adminName" class="admin-form-input" placeholder="Admin Moonlight" required>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+            This name will be displayed as the author
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Update Title *</label>
+          <input type="text" id="updateTitle" class="admin-form-input" placeholder="New Feature Announcement" required>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Description *</label>
+          <textarea id="updateDescription" class="admin-form-input admin-form-textarea" placeholder="Describe your update here..." required></textarea>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+            URLs will be automatically converted to clickable links. Use Enter for new lines.
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Update Type *</label>
+          <select id="updateType" class="admin-form-input" required>
+            <option value="announcement">📢 Announcement</option>
+            <option value="feature">✨ New Feature</option>
+            <option value="maintenance">🔧 Maintenance</option>
+            <option value="community">👥 Community</option>
+          </select>
+        </div>
+        
+        <!-- FIX 1: Post Size Selector (Homepage Style) -->
+        <div class="admin-form-group">
+          <label class="admin-form-label">Post Size *</label>
+          <div class="post-size-selector">
+            <div class="post-size-option selected" data-size="default">
+              <i class="fas fa-expand-alt"></i>
+              <span>Default</span>
+            </div>
+            <div class="post-size-option" data-size="1-1">
+              <i class="fas fa-square"></i>
+              <span>1:1 Square</span>
+            </div>
+            <div class="post-size-option" data-size="16-9">
+              <i class="fas fa-desktop"></i>
+              <span>16:9 Wide</span>
+            </div>
+            <div class="post-size-option" data-size="4-5">
+              <i class="fas fa-portrait"></i>
+              <span>4:5 Portrait</span>
+            </div>
+            <div class="post-size-option" data-size="9-16">
+              <i class="fas fa-mobile-alt"></i>
+              <span>9:16 Tall</span>
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+            Choose the aspect ratio for your update card
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Media Type *</label>
+          <div class="media-type-selector">
+            <div class="media-type-option selected" data-type="image">
+              <i class="fas fa-image"></i>
+              <span>Images</span>
+            </div>
+            <div class="media-type-option" data-type="video">
+              <i class="fas fa-video"></i>
+              <span>Video</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="admin-form-group" id="imageUrlsSection">
+          <label class="admin-form-label">Image URLs (Catbox.moe links) - Max 5</label>
+          <div class="media-url-container" id="imageUrlsContainer">
+            <input type="url" class="admin-form-input media-url-input" placeholder="https://files.catbox.moe/example.jpg" required>
+          </div>
+          <button type="button" class="add-media-url-btn" onclick="addImageUrlField()">
+            <i class="fa-solid fa-plus"></i> Add Another Image URL
+          </button>
+        </div>
+        
+        <div class="admin-form-group" id="videoUrlSection" style="display: none;">
+          <label class="admin-form-label">Video URL (Catbox.moe link)</label>
+          <input type="url" id="videoUrl" class="admin-form-input" placeholder="https://files.catbox.moe/example.mp4">
+        </div>
+        
+        <div class="admin-form-buttons">
+          <button type="submit" class="admin-form-submit" id="postSubmitBtn">
+            <i class="fas fa-paper-plane"></i> Post Update
+          </button>
+          <button type="button" class="admin-form-cancel" onclick="closePostModal()">Cancel</button>
+        </div>
+      </form>
+      
+      <!-- Horizontal Separator -->
+      <hr class="form-separator">
+      
+      <!-- Manage Existing Updates Section -->
+      <div class="manage-updates-container">
+        <h3>Manage Existing Updates</h3>
+        <div id="admin-updates-list">
+          <!-- Admin updates will be loaded here -->
+          <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading updates...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+    <!-- Updates Header -->
+    <div class="updates-header">
+      <h1>Motion-Flow Updates</h1>
+      <p>Stay informed with the latest news, announcements, and community updates</p>
+    </div>
+    
+    <!-- REMOVED Admin Controls Section - Admin posts only through sidebar -->
+    
+    <!-- Updates Grid -->
+    <div class="updates-container" id="updatesContainer">
+      <!-- Updates will be loaded here -->
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading updates...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="../homepage.html" class="nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    
+    <a href="updates.html" class="nav-item active">
+      <i class="fa-solid fa-bell"></i>
+      <span>Updates</span>
+      <div class="notification-dot" id="updateNotificationDot"></div>
+    </a>
+    
+    <a href="../Live_Chat/live.html" class="nav-item">
+      <i class="fa-solid fa-comments"></i>
+      <span>Live Chat</span>
+    </a>
+    
+    <a href="../profile/profile.html" class="nav-item">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle" id="toastIcon"></i>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <!-- Image Viewer -->
+  <div class="image-viewer-overlay" id="imageViewer">
+    <div class="image-viewer-content">
+      <button class="image-viewer-close" onclick="closeImageViewer()">
+        <i class="fas fa-times"></i>
+      </button>
+      <img class="image-viewer-img" id="viewerImage" src="" alt="Fullscreen view">
+      <div class="image-viewer-nav">
+        <button class="image-viewer-btn" onclick="viewerPrevImage()">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="image-viewer-btn" onclick="viewerNextImage()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      <div class="image-viewer-dots" id="viewerDots">
+        <!-- Dots will be added dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div class="video-modal" id="videoModal">
+    <div class="video-modal-content">
+      <button class="video-close-btn" onclick="closeVideoModal()">
+        <i class="fas fa-times"></i>
+      </button>
+      <video class="video-modal-video" id="modalVideo" controls>
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { ref, set, getDatabase, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { onAuthStateChanged, getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy5uQGcg1cALqFSa1xAQOL6lX8Gz5nFNU",
+      authDomain: "motion-flow-47450.firebasestorage.app",
+      databaseURL: "https://motion-flow-47450-default-rtdb.firebaseio.com",
+      projectId: "motion-flow-47450",
+      storageBucket: "motion-flow-47450.firebasestorage.app",
+      messagingSenderId: "686875529848",
+      appId: "1:686875529848:web:48edf5164aaaf938cdd38d",
+      measurementId: "G-K46N8C1HFQ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase();
+    const firestore = getFirestore(app);
+
+    // DOM Elements
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const brandLogo = document.getElementById('brandLogo');
+    const updatesContainer = document.getElementById('updatesContainer');
+    const updateNotificationDot = document.getElementById('updateNotificationDot');
+    
+    // Admin Modals
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const adminPostModal = document.getElementById('adminPostModal');
+    const adminEmail = document.getElementById('adminEmail');
+    const adminPassword = document.getElementById('adminPassword');
+    const admin2FACode = document.getElementById('admin2FACode');
+    const twoFactorSection = document.getElementById('twoFactorSection');
+    const adminLoginSubmit = document.getElementById('adminLoginSubmit');
+    const postUploadForm = document.getElementById('postUploadForm');
+    const postSubmitBtn = document.getElementById('postSubmitBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    
+    // Media type elements
+    const mediaTypeOptions = document.querySelectorAll('.media-type-option');
+    const imageUrlsSection = document.getElementById('imageUrlsSection');
+    const videoUrlSection = document.getElementById('videoUrlSection');
+    const imageUrlsContainer = document.getElementById('imageUrlsContainer');
+    const videoUrlInput = document.getElementById('videoUrl');
+    
+    // FIX 1: Post Size Selector
+    const postSizeOptions = document.querySelectorAll('.post-size-option');
+    
+    // Toast
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    
+    // Success Popup
+    const successPopup = document.getElementById('successPopup');
+    
+    // Image/Video Viewers
+    const imageViewer = document.getElementById('imageViewer');
+    const viewerImage = document.getElementById('viewerImage');
+    const viewerDots = document.getElementById('viewerDots');
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+
+    // Admin updates list
+    const adminUpdatesList = document.getElementById('admin-updates-list');
+
+    // Global State
+    let currentUserId = null;
+    let currentUserData = null;
+    let allUpdatesData = [];
+    let sidebarOpen = false;
+    let isAdmin = false;
+    let adminClickCount = 0;
+    let adminClickTimer = null;
+    
+    // Media upload state
+    let mediaType = 'image'; // 'image' or 'video'
+    let postSize = 'default'; // 'default', '1-1', '16-9', '4-5', '9-16'
+    let imageUrlsCount = 1;
+    let maxMediaFiles = 5;
+    
+    // Image Viewer State
+    let viewerImages = [];
+    let viewerCurrentIndex = 0;
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    // Notification State
+    let lastVisitTimestamp = localStorage.getItem('lastVisitTimestamp') || Date.now();
+    let hasNewUpdates = false;
+    
+    // Edit mode state
+    let isEditMode = false;
+    let currentEditId = null;
+
+    // Hardcoded Admin Credentials
+    const ADMIN_EMAIL = "motionflow.admins@gmail.com";
+    const ADMIN_PASSWORD = "MOTION-FLOW-ADMIN";
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+      toastMessage.textContent = message;
+      toast.className = `toast ${type}`;
+      toastIcon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Show success popup
+    function showSuccessPopup(message) {
+      const messageElement = successPopup.querySelector('.success-message');
+      messageElement.textContent = message;
+      successPopup.classList.add('active');
+    }
+
+    function closeSuccessPopup() {
+      successPopup.classList.remove('active');
+    }
+
+    window.closeSuccessPopup = closeSuccessPopup;
+
+    // Show upload status
+    function showUploadStatus(message, type = 'loading') {
+      uploadStatus.className = `upload-status ${type}`;
+      uploadStatusText.textContent = message;
+      uploadStatus.style.display = 'flex';
+    }
+
+    // Hide upload status
+    function hideUploadStatus() {
+      uploadStatus.style.display = 'none';
+      uploadStatus.className = 'upload-status';
+    }
+
+    // Admin Hidden Entry System (Triple-Click)
+    brandLogo.addEventListener('click', () => {
+      adminClickCount++;
+      
+      if (adminClickTimer) {
+        clearTimeout(adminClickTimer);
+      }
+      
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 2000);
+      
+      if (adminClickCount >= 3) {
+        adminClickCount = 0;
+        clearTimeout(adminClickTimer);
+        openAdminLogin();
+      }
+    });
+
+    function openAdminLogin() {
+      adminLoginModal.classList.add('active');
+      adminEmail.focus();
+    }
+
+    function closeAdminModal() {
+      adminLoginModal.classList.remove('active');
+      adminEmail.value = '';
+      adminPassword.value = '';
+      admin2FACode.value = '';
+      twoFactorSection.style.display = 'none';
+    }
+
+    function openPostModal() {
+      adminPostModal.classList.add('active');
+      resetPostForm();
+      loadAdminUpdates();
+    }
+
+    function closePostModal() {
+      adminPostModal.classList.remove('active');
+      resetPostForm();
+      hideUploadStatus();
+    }
+
+    // FIX 1: Post Size Selection
+    postSizeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        postSizeOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        postSize = option.dataset.size;
+      });
+    });
+
+    // Media Type Selection
+    mediaTypeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        mediaTypeOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        mediaType = option.dataset.type;
+        
+        if (mediaType === 'image') {
+          imageUrlsSection.style.display = 'block';
+          videoUrlSection.style.display = 'none';
+          // Make image URL required
+          const imageInputs = document.querySelectorAll('.media-url-input');
+          imageInputs.forEach(input => input.required = true);
+          videoUrlInput.required = false;
+        } else {
+          imageUrlsSection.style.display = 'none';
+          videoUrlSection.style.display = 'block';
+          // Make video URL required
+          videoUrlInput.required = true;
+          const imageInputs = document.querySelectorAll('.media-url-input');
+          imageInputs.forEach(input => input.required = false);
+        }
+      });
+    });
+
+    // Add Image URL Field
+    window.addImageUrlField = function() {
+      if (imageUrlsCount >= maxMediaFiles) {
+        showToast(`Maximum ${maxMediaFiles} image URLs allowed`, 'error');
+        return;
+      }
+      
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.className = 'admin-form-input media-url-input';
+      input.placeholder = 'https://files.catbox.moe/example.jpg';
+      input.required = true;
+      
+      imageUrlsContainer.appendChild(input);
+      imageUrlsCount++;
+    };
+
+    // Admin Login Handler
+    adminLoginSubmit.addEventListener('click', async () => {
+      const email = adminEmail.value.trim();
+      const password = adminPassword.value.trim();
+      const twoFACode = admin2FACode.value.trim();
+
+      if (!email || !password) {
+        showToast('Please enter email and password', 'error');
+        return;
+      }
+
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        showToast('Invalid admin credentials', 'error');
+        return;
+      }
+
+      if (twoFactorSection.style.display === 'none') {
+        twoFactorSection.style.display = 'block';
+        admin2FACode.focus();
+        showToast('Please enter 2FA access code', 'info');
+        return;
+      }
+
+      if (!twoFACode) {
+        showToast('Please enter 2FA access code', 'error');
+        return;
+      }
+
+      try {
+        const accessCodeRef = ref(db, 'admin/accessCode');
+        const snapshot = await get(accessCodeRef);
+        
+        if (snapshot.exists() && snapshot.val() === twoFACode) {
+          isAdmin = true;
+          
+          closeAdminModal();
+          showToast('Admin login successful!', 'success');
+          
+          // Open post modal immediately after successful login
+          setTimeout(() => {
+            openPostModal();
+          }, 500);
+          
+        } else {
+          showToast('Invalid 2FA access code', 'error');
+        }
+      } catch (error) {
+        console.error('2FA verification error:', error);
+        showToast('Error verifying access code', 'error');
+      }
+    });
+
+    // Reset Post Form
+    function resetPostForm() {
+      postUploadForm.reset();
+      imageUrlsContainer.innerHTML = '<input type="url" class="admin-form-input media-url-input" placeholder="https://files.catbox.moe/example.jpg" required>';
+      imageUrlsCount = 1;
+      mediaType = 'image';
+      postSize = 'default';
+      
+      // Reset media type selector
+      mediaTypeOptions.forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('.media-type-option[data-type="image"]').classList.add('selected');
+      imageUrlsSection.style.display = 'block';
+      videoUrlSection.style.display = 'none';
+      
+      // Reset post size selector
+      postSizeOptions.forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('.post-size-option[data-size="default"]').classList.add('selected');
+      
+      // Reset requirements
+      const imageInputs = document.querySelectorAll('.media-url-input');
+      imageInputs.forEach(input => input.required = true);
+      videoUrlInput.required = false;
+      
+      // Reset edit mode
+      isEditMode = false;
+      currentEditId = null;
+      document.getElementById('postModalTitle').innerHTML = '<i class="fa-solid fa-plus"></i> Create New Update';
+    }
+
+    // Convert URLs to clickable links while preserving whitespace
+    function linkify(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      });
+    }
+
+    // Load admin updates for management
+    async function loadAdminUpdates() {
+      if (!isAdmin) return;
+      
+      adminUpdatesList.innerHTML = `
+        <div class="loading-container" style="min-height: 100px; padding: 20px;">
+          <div class="loading-spinner" style="width: 30px; height: 30px;"></div>
+          <div class="loading-text">Loading updates...</div>
+        </div>
+      `;
+      
+      try {
+        const updatesRef = ref(db, "updates");
+        const snapshot = await get(updatesRef);
+        
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const updates = [];
+          
+          Object.keys(data).forEach(updateKey => {
+            const update = data[updateKey];
+            if (update) {
+              updates.push({
+                key: updateKey,
+                title: update.title || "Untitled",
+                authorName: update.authorName || "Admin",
+                createdAt: update.createdAt || Date.now(),
+                type: update.type || "announcement",
+                postSize: update.postSize || "default"
+              });
+            }
+          });
+          
+          // Sort by creation date (newest first)
+          updates.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          
+          // Render admin updates list
+          renderAdminUpdatesList(updates);
+        } else {
+          adminUpdatesList.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
+              <i class="fas fa-newspaper" style="font-size: 2em; margin-bottom: 15px; opacity: 0.5;"></i>
+              <p>No updates found.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading admin updates:', error);
+        adminUpdatesList.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--color-error);">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 15px;"></i>
+            <p>Error loading updates.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render admin updates list
+    function renderAdminUpdatesList(updates) {
+      if (updates.length === 0) {
+        adminUpdatesList.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--color-text-muted);">
+            <i class="fas fa-newspaper" style="font-size: 2em; margin-bottom: 15px; opacity: 0.5;"></i>
+            <p>No updates found.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      adminUpdatesList.innerHTML = '';
+      
+      updates.forEach(update => {
+        const updateItem = document.createElement('div');
+        updateItem.className = 'admin-update-item';
+        updateItem.id = `admin-update-${update.key}`;
+        
+        const date = new Date(update.createdAt);
+        const formattedDate = date.toLocaleDateString();
+        const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        updateItem.innerHTML = `
+          <div class="admin-update-info">
+            <div class="admin-update-title">${update.title}</div>
+            <div class="admin-update-meta">
+              <span>By: ${update.authorName}</span>
+              <span>Type: ${update.type}</span>
+              <span>Size: ${update.postSize || 'default'}</span>
+              <span>${formattedDate} ${formattedTime}</span>
+            </div>
+          </div>
+          <div class="admin-update-actions">
+            <button class="edit-update-btn" onclick="editUpdate('${update.key}')">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="delete-update-btn" onclick="deleteUpdate('${update.key}')">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        `;
+        
+        adminUpdatesList.appendChild(updateItem);
+      });
+    }
+
+    // Edit update function
+    window.editUpdate = async function(updateId) {
+      if (!isAdmin) {
+        showToast('Admin access required', 'error');
+        return;
+      }
+      
+      try {
+        const updateRef = ref(db, `updates/${updateId}`);
+        const snapshot = await get(updateRef);
+        
+        if (snapshot.exists()) {
+          const update = snapshot.val();
+          
+          // Set edit mode
+          isEditMode = true;
+          currentEditId = updateId;
+          
+          // Scroll to top of modal
+          document.querySelector('.admin-modal-content').scrollTop = 0;
+          
+          // Fill form with existing data
+          document.getElementById('adminName').value = update.authorName || '';
+          document.getElementById('updateTitle').value = update.title || '';
+          document.getElementById('updateDescription').value = update.description || '';
+          document.getElementById('updateType').value = update.type || 'announcement';
+          
+          // Set post size
+          const updatePostSize = update.postSize || 'default';
+          postSize = updatePostSize;
+          postSizeOptions.forEach(opt => opt.classList.remove('selected'));
+          document.querySelector(`.post-size-option[data-size="${updatePostSize}"]`).classList.add('selected');
+          
+          // Handle media
+          if (update.media && update.media.length > 0) {
+            const isVideo = update.media[0].type === 'video';
+            
+            if (isVideo) {
+              // Set to video mode
+              mediaTypeOptions.forEach(opt => opt.classList.remove('selected'));
+              document.querySelector('.media-type-option[data-type="video"]').classList.add('selected');
+              mediaType = 'video';
+              imageUrlsSection.style.display = 'none';
+              videoUrlSection.style.display = 'block';
+              videoUrlInput.value = update.media[0].url || '';
+              videoUrlInput.required = true;
+            } else {
+              // Set to image mode
+              mediaTypeOptions.forEach(opt => opt.classList.remove('selected'));
+              document.querySelector('.media-type-option[data-type="image"]').classList.add('selected');
+              mediaType = 'image';
+              imageUrlsSection.style.display = 'block';
+              videoUrlSection.style.display = 'none';
+              
+              // Clear existing image inputs
+              imageUrlsContainer.innerHTML = '';
+              imageUrlsCount = 0;
+              
+              // Add image URLs
+              update.media.forEach((mediaItem, index) => {
+                if (index < maxMediaFiles) {
+                  const input = document.createElement('input');
+                  input.type = 'url';
+                  input.className = 'admin-form-input media-url-input';
+                  input.placeholder = 'https://files.catbox.moe/example.jpg';
+                  input.value = mediaItem.url || '';
+                  input.required = true;
+                  imageUrlsContainer.appendChild(input);
+                  imageUrlsCount++;
+                }
+              });
+              
+              // Add button if needed
+              if (imageUrlsCount < maxMediaFiles) {
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'add-media-url-btn';
+                addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Another Image URL';
+                addBtn.onclick = addImageUrlField;
+                imageUrlsContainer.appendChild(addBtn);
+              }
+            }
+          }
+          
+          // Update modal title
+          document.getElementById('postModalTitle').innerHTML = '<i class="fa-solid fa-edit"></i> Edit Update';
+          
+          showToast('Update loaded for editing', 'success');
+        } else {
+          showToast('Update not found', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading update for editing:', error);
+        showToast('Error loading update: ' + error.message, 'error');
+      }
+    };
+
+    // Delete update function
+    window.deleteUpdate = async function(updateId) {
+      if (!isAdmin) {
+        showToast('Admin access required', 'error');
+        return;
+      }
+      
+      if (!confirm('Are you sure you want to delete this update? This action cannot be undone.')) {
+        return;
+      }
+      
+      try {
+        const updateRef = ref(db, `updates/${updateId}`);
+        await remove(updateRef);
+        
+        // Remove from local list
+        const updateItem = document.getElementById(`admin-update-${updateId}`);
+        if (updateItem) {
+          updateItem.remove();
+        }
+        
+        showToast('Update deleted successfully', 'success');
+        
+        // Reload updates on main page
+        if (updatesContainer) {
+          loadUpdatesData();
+        }
+      } catch (error) {
+        console.error('Error deleting update:', error);
+        showToast('Error deleting update: ' + error.message, 'error');
+      }
+    };
+
+    // Upload/Post Handler
+    postUploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!currentUserId || !isAdmin) {
+        showToast('Admin access required', 'error');
+        return;
+      }
+
+      const adminName = document.getElementById('adminName').value.trim();
+      const updateTitle = document.getElementById('updateTitle').value.trim();
+      const updateDescription = document.getElementById('updateDescription').value.trim();
+      const updateType = document.getElementById('updateType').value;
+      
+      // Validate required fields
+      if (!adminName) {
+        showToast('Admin name is required', 'error');
+        return;
+      }
+
+      if (!updateTitle) {
+        showToast('Update title is required', 'error');
+        return;
+      }
+
+      if (!updateDescription) {
+        showToast('Description is required', 'error');
+        return;
+      }
+
+      if (!updateType) {
+        showToast('Update type is required', 'error');
+        return;
+      }
+
+      // Validate media based on type
+      let mediaUrls = [];
+      
+      if (mediaType === 'image') {
+        const imageInputs = document.querySelectorAll('.media-url-input');
+        const urls = Array.from(imageInputs)
+          .map(input => input.value.trim())
+          .filter(url => url !== '');
+        
+        if (urls.length === 0) {
+          showToast('At least one image URL is required', 'error');
+          return;
+        }
+        
+        // Validate Catbox URLs
+        for (const url of urls) {
+          if (!url.startsWith('https://files.catbox.moe/')) {
+            showToast('Please use Catbox.moe URLs for images', 'error');
+            return;
+          }
+        }
+        
+        mediaUrls = urls.map(url => ({
+          type: 'image',
+          url: url
+        }));
+        
+      } else {
+        const videoUrl = videoUrlInput.value.trim();
+        
+        if (!videoUrl) {
+          showToast('Video URL is required', 'error');
+          return;
+        }
+        
+        if (!videoUrl.startsWith('https://files.catbox.moe/')) {
+          showToast('Please use Catbox.moe URL for video', 'error');
+          return;
+        }
+        
+        mediaUrls = [{
+          type: 'video',
+          url: videoUrl
+        }];
+      }
+
+      // Show loading state on button
+      postSubmitBtn.classList.add('loading');
+      postSubmitBtn.disabled = true;
+      showUploadStatus(isEditMode ? 'Updating post...' : 'Posting update...', 'loading');
+
+      // Generate unique ID or use existing for edit
+      const updateId = isEditMode ? currentEditId : 'update_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      const updateData = {
+        id: updateId,
+        title: updateTitle,
+        description: updateDescription,
+        type: updateType,
+        postSize: postSize,
+        media: mediaUrls,
+        authorName: adminName,
+        authorId: currentUserId,
+        authorIsAdmin: true,
+        updatedAt: Date.now(),
+        ...(isEditMode ? {} : { createdAt: Date.now() }) // Only add createdAt for new posts
+      };
+
+      try {
+        // Save to Firebase under 'updates' node
+        const updateRef = ref(db, `updates/${updateId}`);
+        await set(updateRef, updateData);
+        
+        showUploadStatus(isEditMode ? 'Update edited successfully!' : 'Update posted successfully!', 'success');
+        
+        setTimeout(() => {
+          hideUploadStatus();
+          postSubmitBtn.disabled = false;
+          postSubmitBtn.classList.remove('loading');
+          resetPostForm();
+          loadAdminUpdates(); // Refresh the management list
+          
+          if (!isEditMode) {
+            closePostModal();
+            showSuccessPopup('Update posted successfully!');
+          } else {
+            showToast('Update edited successfully!', 'success');
+          }
+          
+          // Trigger new update notification
+          hasNewUpdates = true;
+          checkNewUpdates();
+          
+          // Reload updates on main page
+          if (updatesContainer) {
+            loadUpdatesData();
+          }
+          
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Post error:', error);
+        postSubmitBtn.classList.remove('loading');
+        showUploadStatus('Error: ' + error.message, 'error');
+        postSubmitBtn.disabled = false;
+        setTimeout(hideUploadStatus, 3000);
+      }
+    });
+
+    // Sidebar functions
+    function toggleSidebar() {
+      sidebarOpen = !sidebarOpen;
+      if (sidebarOpen) {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('active');
+      } else {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+      }
+    }
+
+    hamburgerBtn.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // Logout function
+    function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        signOut(auth).then(() => {
+          window.location.href = "../index.html";
+        }).catch((error) => {
+          showToast("Logout failed: " + error.message, "error");
+        });
+      }
+    }
+
+    // Function to load user profile data
+    async function loadUserProfileData(userId) {
+      try {
+        // Try multiple possible paths where user data might be stored
+        const possiblePaths = [
+          doc(firestore, "artifacts", "motion-flow-v1", "users", userId, "profile", "settings"),
+          doc(firestore, "users", userId)
+        ];
+        
+        let userData = null;
+        
+        for (const userDocRef of possiblePaths) {
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              userData = userDoc.data();
+              console.log('User profile data loaded from Firestore:', userData);
+              break;
+            }
+          } catch (err) {
+            console.log('Path not found:', userDocRef.path, err.message);
+          }
+        }
+        
+        if (userData) {
+          currentUserData = userData;
+          console.log('Current user data set:', currentUserData);
+        } else {
+          // Create default user data structure if not found
+          currentUserData = {
+            username: `User${userId.substring(0, 6)}`,
+            nickname: `User${userId.substring(0, 6)}`,
+            profileImage: null,
+            userId: userId // Store the user ID
+          };
+          console.log('Created default user data:', currentUserData);
+        }
+        
+      } catch (error) {
+        console.error("Error loading user profile data:", error);
+        // Fallback to default data
+        currentUserData = {
+          username: `User${userId.substring(0, 6)}`,
+          nickname: `User${userId.substring(0, 6)}`,
+          profileImage: null,
+          userId: userId
+        };
+      }
+    }
+
+    // Check if user is admin by checking Firebase
+    async function checkAdminStatus() {
+      try {
+        const adminFlagRef = ref(db, 'admin/isAdmin');
+        const snapshot = await get(adminFlagRef);
+        
+        if (snapshot.exists() && snapshot.val() === true) {
+          isAdmin = true;
+          console.log('User is admin');
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    }
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUserId = user.uid;
+        console.log('User authenticated:', currentUserId);
+        
+        // Check admin status
+        await checkAdminStatus();
+        
+        // Load user profile data from Firestore FIRST
+        await loadUserProfileData(currentUserId);
+        
+        // Load updates data after authentication
+        loadUpdatesData();
+        
+        // Check for new updates
+        checkNewUpdates();
+        
+        // Mark current visit
+        markCurrentVisit();
+        
+      } else {
+        window.location.href = "../index.html";
+      }
+    });
+
+    // Load updates data from Firebase
+    function loadUpdatesData() {
+      console.log('Loading updates data...');
+      
+      // Check if user is authenticated
+      if (!currentUserId) {
+        console.log('Waiting for authentication...');
+        setTimeout(loadUpdatesData, 1000);
+        return;
+      }
+      
+      try {
+        const updatesRef = ref(db, "updates");
+        
+        onValue(updatesRef, (snapshot) => {
+          clearLoadingAnimation();
+          
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            console.log('Firebase data loaded successfully:', Object.keys(data).length, 'updates');
+            allUpdatesData = [];
+            
+            Object.keys(data).forEach(updateKey => {
+              try {
+                const update = data[updateKey];
+                
+                // Skip if update is null or missing basic info
+                if (!update || typeof update !== 'object') {
+                  console.warn('Skipping invalid update:', updateKey);
+                  return;
+                }
+                
+                // Ensure media is always an array
+                let media = [];
+                if (update.media && Array.isArray(update.media)) {
+                  media = update.media;
+                }
+                
+                // Calculate comment count
+                let commentCount = 0;
+                if (update.comments && typeof update.comments === 'object') {
+                  commentCount = Object.keys(update.comments).length;
+                }
+                
+                // Create update object with all required properties
+                const updateObject = {
+                  ...update,
+                  key: updateKey,
+                  media: media,
+                  postSize: update.postSize || 'default',
+                  description: update.description || "",
+                  authorName: update.authorName || "Admin",
+                  authorId: update.authorId || "unknown",
+                  createdAt: update.createdAt || Date.now(),
+                  updatedAt: update.updatedAt || update.createdAt || Date.now(),
+                  likes: update.likes || 0,
+                  comments: update.comments || {},
+                  commentCount: commentCount // Add comment count
+                };
+                
+                allUpdatesData.push(updateObject);
+                
+              } catch (updateError) {
+                console.error('Error processing update:', updateKey, updateError);
+              }
+            });
+            
+            if (allUpdatesData.length === 0) {
+              showNoUpdatesMessage();
+              return;
+            }
+            
+            // Sort by creation date (newest first)
+            allUpdatesData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            
+            // Render all updates
+            renderUpdates();
+            
+            // Check for hash in URL (deep linking)
+            setTimeout(() => {
+              const hash = window.location.hash;
+              if (hash && hash.startsWith('#post-')) {
+                const postId = hash.replace('#post-', '');
+                scrollToPost(postId);
+              }
+            }, 500);
+            
+          } else {
+            // No data in Firebase
+            showNoUpdatesMessage();
+          }
+        }, (error) => {
+          console.error('Firebase read error:', error);
+          clearLoadingAnimation();
+          showErrorMessage('Connection error. Please check your internet connection and refresh.');
+        });
+        
+      } catch (error) {
+        console.error('Error setting up Firebase listener:', error);
+        clearLoadingAnimation();
+        showErrorMessage('Failed to load updates. Please refresh the page.');
+      }
+    }
+    
+    // Helper function for no updates message
+    function showNoUpdatesMessage() {
+      updatesContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-newspaper"></i>
+          </div>
+          <h3>No Updates Yet</h3>
+          <p>Check back soon for news and announcements!</p>
+        </div>
+      `;
+    }
+    
+    // Helper function for error message
+    function showErrorMessage(message) {
+      updatesContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Connection Issue</h3>
+          <p>${message}</p>
+          <button class="admin-form-submit" onclick="location.reload()" style="margin-top: 20px;">
+            <i class="fas fa-redo"></i> Refresh Page
+          </button>
+        </div>
+      `;
+    }
+
+    // Loading animation
+    function showLoadingAnimation() {
+      updatesContainer.innerHTML = `
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Loading updates...</div>
+        </div>
+      `;
+    }
+
+    function clearLoadingAnimation() {
+      updatesContainer.innerHTML = '';
+    }
+
+    // Render updates with carousel
+    async function renderUpdates() {
+      updatesContainer.innerHTML = '';
+      
+      if (allUpdatesData.length === 0) {
+        showNoUpdatesMessage();
+        return;
+      }
+      
+      for (const update of allUpdatesData) {
+        await createUpdateCard(update);
+      }
+    }
+
+    async function createUpdateCard(update) {
+      const hasMedia = update.media && update.media.length > 0;
+      const hasMultipleMedia = update.media && update.media.length > 1;
+      const commentCount = update.commentCount || 0;
+      const isVideo = hasMedia && update.media[0].type === 'video';
+      const postSizeClass = update.postSize ? `size-${update.postSize}` : 'size-default';
+      
+      const card = document.createElement('div');
+      card.className = `update-card ${postSizeClass}`;
+      card.id = `post-${update.key}`;
+      
+      const shareLink = `${window.location.origin}${window.location.pathname}#post-${update.key}`;
+      
+      // Make author name clickable
+      const authorNameHtml = update.authorIsAdmin ? 
+        `<span class="clickable-username" onclick="visitUserProfile('${update.authorId || 'admin'}', '${update.authorName}')">${update.authorName}</span>` :
+        `<span class="clickable-username" onclick="visitUserProfile('${update.authorId || 'unknown'}', '${update.authorName}')">${update.authorName}</span>`;
+      
+      // FIX 2: Video Player Logic - Play vs Preview
+      const mediaHtml = hasMedia ? `
+        <div class="update-media-wrapper">
+          ${isVideo ? `
+            <video class="video-player-inline" id="video-${update.key}" preload="metadata" poster="">
+              <source src="${update.media[0].url}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div class="video-play-overlay" onclick="playInlineVideo('${update.key}', '${update.media[0].url}')">
+              <div class="video-play-icon">
+                <i class="fas fa-play"></i>
+              </div>
+            </div>
+          ` : `
+            <img src="${update.media[0].url}" alt="${update.title}" class="update-media" data-current-index="0">
+          `}
+          
+          ${hasMultipleMedia && !isVideo ? `
+            <div class="carousel-nav">
+              <button class="carousel-btn prev-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="carousel-btn next-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="carousel-dots">
+              ${update.media.map((_, index) => 
+                `<button class="carousel-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Go to media ${index + 1}"></button>`
+              ).join('')}
+            </div>
+          ` : ''}
+          
+          <div class="update-type-badge">
+            ${getUpdateTypeIcon(update.type)} ${update.type.charAt(0).toUpperCase() + update.type.slice(1)}
+          </div>
+        </div>
+      ` : '';
+      
+      card.innerHTML = `
+        ${mediaHtml}
+        
+        <div class="update-info">
+          <div class="update-header">
+            <div class="update-title">
+              <h3>${update.title}</h3>
+            </div>
+            <div class="update-date">
+              ${getTimeAgo(update.createdAt || Date.now())}
+            </div>
+          </div>
+          
+          <div class="update-description">
+            ${linkify(update.description)}
+          </div>
+          
+          <div class="user-info">
+            <div class="user-details">
+              <span class="username">
+                ${authorNameHtml}
+                ${update.authorIsAdmin ? 
+                  `<span class="admin-badge"><i class="fas fa-crown"></i> Admin</span>` : ''}
+              </span>
+            </div>
+            <span class="time">${new Date(update.createdAt).toLocaleDateString()}</span>
+          </div>
+          
+          <div class="update-actions">
+            <button class="share-btn" onclick="shareUpdate('${update.key}', '${update.title}', '${shareLink}')">
+              <i class="fas fa-share-alt"></i> Share
+            </button>
+            <button class="comment-btn" onclick="toggleComments('${update.key}')">
+              <i class="fas fa-comment"></i> Comments
+              ${commentCount > 0 ? `<span class="comment-count">${commentCount}</span>` : ''}
+            </button>
+          </div>
+          
+          <div class="comments-section" id="comments-${update.key}">
+            <div class="comments-title">
+              <i class="fas fa-comments"></i> Comments
+              ${commentCount > 0 ? `<span class="comment-count">${commentCount}</span>` : ''}
+            </div>
+            <div class="comments-list" id="comments-list-${update.key}">
+              <!-- Comments will be loaded here -->
+            </div>
+            <div class="add-comment">
+              <textarea class="comment-input" id="comment-input-${update.key}" placeholder="Add a comment..."></textarea>
+              <button class="comment-submit" onclick="addComment('${update.key}')">Post</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      updatesContainer.appendChild(card);
+      
+      // Initialize carousel if multiple images (not video)
+      if (hasMultipleMedia && !isVideo) {
+        const mediaWrapper = card.querySelector('.update-media-wrapper');
+        const mediaElement = mediaWrapper.querySelector('.update-media');
+        const prevBtn = mediaWrapper.querySelector('.prev-btn');
+        const nextBtn = mediaWrapper.querySelector('.next-btn');
+        const dots = mediaWrapper.querySelectorAll('.carousel-dot');
+        let currentIndex = 0;
+        
+        function updateCarousel() {
+          const mediaItem = update.media[currentIndex];
+          mediaElement.src = mediaItem.url;
+          mediaElement.dataset.currentIndex = currentIndex;
+          
+          dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+          });
+        }
+        
+        prevBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = (currentIndex - 1 + update.media.length) % update.media.length;
+          updateCarousel();
+        });
+        
+        nextBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = (currentIndex + 1) % update.media.length;
+          updateCarousel();
+        });
+        
+        dots.forEach((dot, index) => {
+          dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = index;
+            updateCarousel();
+          });
+        });
+        
+        // Click on image to open fullscreen viewer
+        mediaWrapper.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('carousel-btn') && 
+              !e.target.classList.contains('carousel-dot') &&
+              !e.target.classList.contains('video-play-overlay') &&
+              !e.target.closest('.video-play-overlay')) {
+            const imageUrls = update.media.filter(m => m.type === 'image').map(m => m.url);
+            const imageIndex = currentIndex;
+            openImageViewer(imageUrls, imageIndex);
+          }
+        });
+      } else if (hasMedia && !isVideo) {
+        // Single image - still clickable for fullscreen
+        const mediaWrapper = card.querySelector('.update-media-wrapper');
+        
+        mediaWrapper.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('video-play-overlay') &&
+              !e.target.closest('.video-play-overlay')) {
+            const imageUrls = update.media.filter(m => m.type === 'image').map(m => m.url);
+            openImageViewer(imageUrls, 0);
+          }
+        });
+      }
+      
+      // Load comments
+      await loadComments(update.key);
+    }
+
+    // FIX 2: Play inline video function
+    window.playInlineVideo = function(updateId, videoUrl) {
+      const videoElement = document.getElementById(`video-${updateId}`);
+      const playOverlay = videoElement?.parentElement.querySelector('.video-play-overlay');
+      
+      if (!videoElement) {
+        // Fallback to modal if video element not found
+        playVideo(videoUrl);
+        return;
+      }
+      
+      // Set video source
+      if (videoElement.src !== videoUrl) {
+        videoElement.src = videoUrl;
+      }
+      
+      // Hide play overlay
+      if (playOverlay) {
+        playOverlay.style.display = 'none';
+      }
+      
+      // Play video
+      videoElement.play().catch(e => {
+        console.log('Video play error:', e);
+        // Show overlay again if play fails
+        if (playOverlay) {
+          playOverlay.style.display = 'flex';
+        }
+      });
+      
+      // Show controls when video ends
+      videoElement.onended = () => {
+        if (playOverlay) {
+          playOverlay.style.display = 'flex';
+        }
+      };
+      
+      // Show controls when video is paused
+      videoElement.onpause = () => {
+        if (playOverlay && videoElement.currentTime > 0) {
+          playOverlay.style.display = 'flex';
+        }
+      };
+    };
+
+    // Get update type icon
+    function getUpdateTypeIcon(type) {
+      switch(type) {
+        case 'announcement': return '📢';
+        case 'feature': return '✨';
+        case 'maintenance': return '🔧';
+        case 'community': return '👥';
+        default: return '📰';
+      }
+    }
+
+    // Image Viewer Functions
+    function openImageViewer(images, startIndex) {
+      viewerImages = images;
+      viewerCurrentIndex = startIndex;
+      
+      updateImageViewer();
+      imageViewer.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Add touch events for swiping
+      viewerImage.addEventListener('touchstart', handleTouchStart, false);
+      viewerImage.addEventListener('touchmove', handleTouchMove, false);
+      viewerImage.addEventListener('touchend', handleTouchEnd, false);
+    }
+
+    function closeImageViewer() {
+      imageViewer.classList.remove('active');
+      document.body.style.overflow = 'auto';
+      
+      // Remove touch events
+      viewerImage.removeEventListener('touchstart', handleTouchStart, false);
+      viewerImage.removeEventListener('touchmove', handleTouchMove, false);
+      viewerImage.removeEventListener('touchend', handleTouchEnd, false);
+    }
+
+    function handleTouchStart(e) {
+      touchStartX = e.touches[0].clientX;
+    }
+
+    function handleTouchMove(e) {
+      touchEndX = e.touches[0].clientX;
+    }
+
+    function handleTouchEnd() {
+      if (touchStartX - touchEndX > 50) {
+        // Swipe left - next image
+        viewerNextImage();
+      } else if (touchEndX - touchStartX > 50) {
+        // Swipe right - previous image
+        viewerPrevImage();
+      }
+    }
+
+    function updateImageViewer() {
+      viewerImage.src = viewerImages[viewerCurrentIndex];
+      
+      // Update dots
+      viewerDots.innerHTML = '';
+      viewerImages.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.className = `image-viewer-dot ${index === viewerCurrentIndex ? 'active' : ''}`;
+        dot.onclick = () => {
+          viewerCurrentIndex = index;
+          updateImageViewer();
+        };
+        viewerDots.appendChild(dot);
+      });
+    }
+
+    function viewerPrevImage() {
+      viewerCurrentIndex = (viewerCurrentIndex - 1 + viewerImages.length) % viewerImages.length;
+      updateImageViewer();
+    }
+
+    function viewerNextImage() {
+      viewerCurrentIndex = (viewerCurrentIndex + 1) % viewerImages.length;
+      updateImageViewer();
+    }
+
+    window.viewerPrevImage = viewerPrevImage;
+    window.viewerNextImage = viewerNextImage;
+    window.closeImageViewer = closeImageViewer;
+
+    // Video Play Function (Modal - for fallback)
+    window.playVideo = (videoUrl) => {
+      if (!videoUrl || videoUrl === '#') {
+        showToast('Video not available', 'error');
+        return;
+      }
+      
+      modalVideo.src = videoUrl;
+      modalVideo.load();
+      videoModal.classList.add('active');
+      
+      modalVideo.play().catch(e => {
+        console.log('Autoplay prevented:', e);
+      });
+    };
+
+    function closeVideoModal() {
+      videoModal.classList.remove('active');
+      modalVideo.pause();
+      modalVideo.src = '';
+    }
+
+    window.closeVideoModal = closeVideoModal;
+
+    // Close video modal when clicking outside
+    videoModal.addEventListener('click', (e) => {
+      if (e.target === videoModal) {
+        closeVideoModal();
+      }
+    });
+
+    // Utility functions
+    function getTimeAgo(timestamp) {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) return `${days}d ago`;
+      if (hours > 0) return `${hours}h ago`;
+      if (minutes > 0) return `${minutes}m ago`;
+      return 'Just now';
+    }
+
+    // Share update function
+    window.shareUpdate = function(updateId, updateTitle, shareLink) {
+      if (navigator.share) {
+        navigator.share({
+          title: `${updateTitle} - Motion-Flow Update`,
+          text: `Check out this update on Motion-Flow: ${updateTitle}`,
+          url: shareLink,
+        }).then(() => {
+          showToast('Shared successfully!', 'success');
+        }).catch(err => {
+          copyToClipboard(shareLink, 'Update link copied!');
+        });
+      } else {
+        copyToClipboard(shareLink, 'Update link copied! Share this link with others.');
+      }
+    };
+
+    // Toggle comments section
+    window.toggleComments = function(updateId) {
+      const commentsSection = document.getElementById(`comments-${updateId}`);
+      commentsSection.classList.toggle('active');
+      
+      if (commentsSection.classList.contains('active')) {
+        loadComments(updateId);
+        // Focus on comment input
+        const commentInput = document.getElementById(`comment-input-${updateId}`);
+        if (commentInput) {
+          commentInput.focus();
+        }
+      }
+    };
+
+    // Load comments for an update
+    async function loadComments(updateId) {
+      const update = allUpdatesData.find(u => u.key === updateId);
+      if (!update || !update.comments) return;
+      
+      const commentsList = document.getElementById(`comments-list-${updateId}`);
+      if (!commentsList) return;
+      
+      commentsList.innerHTML = '';
+      
+      const comments = Object.values(update.comments);
+      
+      if (comments.length === 0) {
+        commentsList.innerHTML = `
+          <div style="text-align: center; color: var(--color-text-muted); padding: 20px;">
+            No comments yet. Be the first to comment!
+          </div>
+        `;
+        return;
+      }
+      
+      // Sort comments by timestamp (newest first)
+      comments.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      
+      // Show comment count in title
+      const commentsTitle = document.querySelector(`#comments-${updateId} .comments-title`);
+      if (commentsTitle) {
+        const countSpan = commentsTitle.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.textContent = comments.length;
+        } else if (comments.length > 0) {
+          const newCountSpan = document.createElement('span');
+          newCountSpan.className = 'comment-count';
+          newCountSpan.textContent = comments.length;
+          commentsTitle.appendChild(newCountSpan);
+        }
+      }
+      
+      comments.forEach(comment => {
+        const commentItem = document.createElement('div');
+        commentItem.className = 'comment-item';
+        
+        // Get profile image URL or use default avatar
+        const profileImage = comment.profileImage || 
+                           `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.userName)}&background=00bcd4&color=fff`;
+        
+        // FIX 3: Use the commenter's actual user ID for profile link
+        const commenterUserId = comment.userId || 'unknown';
+        const commenterUserName = comment.userName || 'User';
+        
+        commentItem.innerHTML = `
+          <div class="comment-header">
+            <img src="${profileImage}" 
+                 class="comment-avatar" 
+                 alt="${commenterUserName}"
+                 onclick="visitUserProfile('${commenterUserId}', '${commenterUserName}')"
+                 onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(commenterUserName)}&background=1a1a2e&color=fff'">
+            <span class="comment-author" onclick="visitUserProfile('${commenterUserId}', '${commenterUserName}')">
+              ${commenterUserName}
+            </span>
+            <span class="comment-time">${getTimeAgo(comment.timestamp)}</span>
+          </div>
+          <div class="comment-text">${comment.text}</div>
+        `;
+        
+        commentsList.appendChild(commentItem);
+      });
+    }
+
+    // Add comment
+    window.addComment = async function(updateId) {
+      if (!currentUserId) {
+        showToast('Please login to comment', 'error');
+        return;
+      }
+      
+      const commentInput = document.getElementById(`comment-input-${updateId}`);
+      if (!commentInput) {
+        showToast('Comment input not found', 'error');
+        return;
+      }
+      
+      const commentText = commentInput.value.trim();
+      
+      if (!commentText) {
+        showToast('Please enter a comment', 'error');
+        return;
+      }
+      
+      if (commentText.length > 500) {
+        showToast('Comment too long (max 500 characters)', 'error');
+        return;
+      }
+      
+      // Get current user data
+      let userName = 'User';
+      let userNickname = 'User';
+      let profileImage = null;
+      
+      if (currentUserData) {
+        // Use nickname if available, otherwise username
+        if (currentUserData.nickname) {
+          userName = currentUserData.nickname;
+          userNickname = currentUserData.nickname;
+        } else if (currentUserData.username) {
+          userName = currentUserData.username;
+          userNickname = currentUserData.username;
+        } else if (currentUserData.displayName) {
+          userName = currentUserData.displayName;
+          userNickname = currentUserData.displayName;
+        } else if (currentUserData.email) {
+          userName = currentUserData.email.split('@')[0];
+          userNickname = currentUserData.email.split('@')[0];
+        }
+        
+        // Get profile image
+        if (currentUserData.profileImage) {
+          profileImage = currentUserData.profileImage;
+        } else if (currentUserData.profilePicture) {
+          profileImage = currentUserData.profilePicture;
+        }
+      } else {
+        // If user data isn't loaded yet, use a fallback
+        userName = `User${currentUserId.substring(0, 6)}`;
+        userNickname = `User${currentUserId.substring(0, 6)}`;
+      }
+      
+      const commentId = 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const commentData = {
+        id: commentId,
+        text: commentText,
+        userId: currentUserId,
+        userName: userNickname,
+        profileImage: profileImage,
+        timestamp: Date.now()
+      };
+      
+      try {
+        // Add comment to Firebase
+        const commentRef = ref(db, `updates/${updateId}/comments/${commentId}`);
+        await set(commentRef, commentData);
+        
+        // Update local data
+        const updateIndex = allUpdatesData.findIndex(u => u.key === updateId);
+        if (updateIndex !== -1) {
+          if (!allUpdatesData[updateIndex].comments) {
+            allUpdatesData[updateIndex].comments = {};
+          }
+          allUpdatesData[updateIndex].comments[commentId] = commentData;
+          // Update comment count
+          allUpdatesData[updateIndex].commentCount = Object.keys(allUpdatesData[updateIndex].comments).length;
+        }
+        
+        // Clear input and show success
+        commentInput.value = '';
+        showToast('Comment posted!', 'success');
+        
+        // Reload comments
+        await loadComments(updateId);
+        
+        // Update comment count on button
+        const commentBtn = document.querySelector(`[onclick="toggleComments('${updateId}')"]`);
+        if (commentBtn) {
+          const commentCount = allUpdatesData[updateIndex]?.commentCount || 0;
+          const countSpan = commentBtn.querySelector('.comment-count');
+          if (countSpan) {
+            countSpan.textContent = commentCount;
+          } else if (commentCount > 0) {
+            const newCountSpan = document.createElement('span');
+            newCountSpan.className = 'comment-count';
+            newCountSpan.textContent = commentCount;
+            commentBtn.appendChild(newCountSpan);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error posting comment:', error);
+        showToast('Error posting comment: ' + error.message, 'error');
+      }
+    };
+
+    // FIX 3: Visit user profile - Corrected version
+    window.visitUserProfile = function(userId, userName) {
+      console.log('Visiting user profile:', userId, userName);
+      
+      // Don't redirect if userId is unknown or null
+      if (!userId || userId === 'unknown' || userId === 'admin') {
+        showToast('Cannot visit this user\'s profile', 'info');
+        return;
+      }
+      
+      // Always redirect to profile page with user ID parameter
+      window.location.href = `../profile/profile.html?userId=${userId}`;
+    };
+
+    // Scroll to specific post
+    function scrollToPost(postId) {
+      const postElement = document.getElementById(`post-${postId}`);
+      if (postElement) {
+        postElement.scrollIntoView({ behavior: 'smooth' });
+        postElement.style.animation = 'pulse 2s';
+        setTimeout(() => {
+          postElement.style.animation = '';
+        }, 2000);
+      }
+    }
+
+    // New Updates Notification System
+    function markCurrentVisit() {
+      localStorage.setItem('lastVisitTimestamp', Date.now());
+      hasNewUpdates = false;
+      updateNotificationDot.classList.remove('active');
+    }
+
+    function checkNewUpdates() {
+      const updatesRef = ref(db, "updates");
+      
+      onValue(updatesRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          let latestUpdateTime = 0;
+          
+          Object.keys(data).forEach(updateKey => {
+            const update = data[updateKey];
+            if (update && update.createdAt) {
+              latestUpdateTime = Math.max(latestUpdateTime, update.createdAt);
+            }
+          });
+          
+          hasNewUpdates = latestUpdateTime > lastVisitTimestamp;
+          
+          if (hasNewUpdates) {
+            updateNotificationDot.classList.add('active');
+          } else {
+            updateNotificationDot.classList.remove('active');
+          }
+        }
+      });
+    }
+
+    // Global functions
+    window.copyToClipboard = (text, message = 'Copied to clipboard!') => {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(message, 'success');
+      }).catch(err => {
+        showToast('Failed to copy', 'error');
+      });
+    };
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Updates page loaded');
+      showLoadingAnimation();
+      
+      // Remove notification dot when page is visited
+      markCurrentVisit();
+    });
+
+    // Make functions available globally
+    window.toggleSidebar = toggleSidebar;
+    window.logout = logout;
+    window.closeAdminModal = closeAdminModal;
+    window.closePostModal = closePostModal;
+    window.openPostModal = openPostModal;
+  </script>
+</body>
+</html>
