@@ -23,6 +23,22 @@
             color: #e5e7eb;
         }
         
+        /* Fixed: Logo styling to prevent wrapping on mobile */
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffffff;
+            text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(6, 182, 212, 0.5);
+            white-space: nowrap;
+            font-size: clamp(1.5rem, 8vw, 2.5rem);
+            padding: 0 1rem;
+        }
+        
+        /* Main container padding for mobile */
+        #app-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
         /* Glass Card */
         .liquid-glass-card {
             background-color: rgba(255, 255, 255, 0.05);
@@ -89,12 +105,6 @@
             justify-content: center;
         }
         
-        .logo-text {
-            font-family: 'Orbitron', sans-serif;
-            color: #ffffff;
-            text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(6, 182, 212, 0.5);
-        }
-
         /* Avatar styling - FIXED: Proper circle shape */
         .avatar-circle {
             width: 80px;
@@ -241,7 +251,10 @@
         <!-- Sign Up View -->
         <div id="signup-view">
             <div class="liquid-glass-card p-6 sm:p-8 md:p-10 rounded-xl shadow-2xl">
-                <h1 class="text-4xl font-bold text-center logo-text mb-2">MOTION FLOW</h1>
+                <!-- Fixed: Logo with fluid font size and no wrapping -->
+                <div class="flex justify-center mb-2">
+                    <h1 class="logo-text">MOTION FLOW</h1>
+                </div>
                 <p class="text-center text-gray-400 mb-8">Create your account</p>
 
                 <div id="message-box" class="hidden p-4 mb-4 rounded-lg text-sm bg-opacity-30"></div>
@@ -353,7 +366,7 @@
             <div class="liquid-glass-card p-6 md:p-8 rounded-xl">
                 <!-- Header -->
                 <div class="text-center mb-6">
-                    <h1 class="text-3xl md:text-4xl font-bold mb-2 font-['Orbitron']">
+                    <h1 class="logo-text">
                         MOTION<span style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-orange)); -webkit-background-clip: text; background-clip: text; color: transparent;">FLOW</span>
                     </h1>
                     <p class="text-gray-400 text-sm md:text-base">Complete your profile to join the community</p>
@@ -666,6 +679,108 @@
             { id: 'girl5', url: 'https://files.catbox.moe/t6mk1v.jpg' }
         ];
 
+        // FIXED: Username availability check with proper debounce
+        let usernameCheckTimeout = null;
+        let lastCheckedUsername = '';
+        let lastCheckResult = null;
+
+        const checkUsernameAvailability = async (username) => {
+            if (!username || username.length < 3) return true;
+            
+            // Check if we already checked this username recently
+            if (username === lastCheckedUsername && lastCheckResult !== null) {
+                return lastCheckResult;
+            }
+            
+            try {
+                // Query Firestore for the username field specifically
+                const usersRef = collection(db, 'artifacts', appId, 'users');
+                
+                // Create a query to check if username exists
+                const q = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(q);
+                
+                const isTaken = !querySnapshot.empty;
+                
+                // Cache the result
+                lastCheckedUsername = username;
+                lastCheckResult = isTaken;
+                
+                return isTaken;
+            } catch (error) {
+                console.error("Error checking username availability:", error);
+                // On error, assume username is taken to be safe
+                return true;
+            }
+        };
+
+        // FIXED: Username validation with proper debounce
+        window.validateUsername = async (username) => {
+            const usernameInput = document.getElementById('profile-username');
+            const statusIcon = document.getElementById('username-status-icon');
+            const statusText = document.getElementById('username-status-text');
+            
+            // Clear any existing timeout
+            if (usernameCheckTimeout) {
+                clearTimeout(usernameCheckTimeout);
+                usernameCheckTimeout = null;
+            }
+            
+            // Reset to checking state
+            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+            usernameInput.classList.add('username-checking');
+            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
+            statusText.textContent = 'Checking...';
+            statusText.className = 'text-xs text-yellow-500';
+            
+            // Validate format first
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
+                statusText.className = 'text-xs text-red-500';
+                return;
+            }
+            
+            if (username.length < 3) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Username must be at least 3 characters';
+                statusText.className = 'text-xs text-red-500';
+                return;
+            }
+            
+            // Set debounce timeout for Firestore query
+            usernameCheckTimeout = setTimeout(async () => {
+                try {
+                    const isTaken = await checkUsernameAvailability(username);
+                    
+                    if (isTaken) {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-invalid');
+                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is already taken';
+                        statusText.className = 'text-xs text-red-500';
+                    } else {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-valid');
+                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is available';
+                        statusText.className = 'text-xs text-green-500';
+                    }
+                } catch (error) {
+                    console.error("Error validating username:", error);
+                    usernameInput.classList.remove('username-checking');
+                    usernameInput.classList.add('username-invalid');
+                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
+                    statusText.textContent = 'Error checking username';
+                    statusText.className = 'text-xs text-red-500';
+                }
+            }, 500); // 500ms debounce delay
+        };
+
         // UI Functions
         const showCustomModal = (title, message) => {
             document.getElementById('modal-title').textContent = title;
@@ -773,71 +888,6 @@
             });
             
             currentStep = step;
-        };
-
-        // Username Validation
-        let usernameTimeout = null;
-        window.validateUsername = async (username) => {
-            const usernameInput = document.getElementById('profile-username');
-            const statusIcon = document.getElementById('username-status-icon');
-            const statusText = document.getElementById('username-status-text');
-            
-            // Clear previous timeout
-            if (usernameTimeout) clearTimeout(usernameTimeout);
-            
-            // Reset styles
-            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
-            usernameInput.classList.add('username-checking');
-            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
-            statusText.textContent = 'Checking...';
-            statusText.className = 'text-xs text-yellow-500';
-            
-            // Validate format
-            if (!/^[a-z0-9_]+$/.test(username)) {
-                usernameInput.classList.remove('username-checking');
-                usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
-                statusText.className = 'text-xs text-red-500';
-                return;
-            }
-            
-            if (username.length < 3) {
-                usernameInput.classList.remove('username-checking');
-                usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                statusText.textContent = 'Username must be at least 3 characters';
-                statusText.className = 'text-xs text-red-500';
-                return;
-            }
-            
-            // Debounce the Firebase check
-            usernameTimeout = setTimeout(async () => {
-                try {
-                    const usernameTaken = await checkUsernameAvailability(username);
-                    
-                    if (usernameTaken) {
-                        usernameInput.classList.remove('username-checking');
-                        usernameInput.classList.add('username-invalid');
-                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                        statusText.textContent = 'Username is already taken';
-                        statusText.className = 'text-xs text-red-500';
-                    } else {
-                        usernameInput.classList.remove('username-checking');
-                        usernameInput.classList.add('username-valid');
-                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
-                        statusText.textContent = 'Username is available';
-                        statusText.className = 'text-xs text-green-500';
-                    }
-                } catch (error) {
-                    console.error("Username check error:", error);
-                    usernameInput.classList.remove('username-checking');
-                    usernameInput.classList.add('username-invalid');
-                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
-                    statusText.textContent = 'Error checking username';
-                    statusText.className = 'text-xs text-red-500';
-                }
-            }, 500);
         };
 
         // Profile Picture Upload
@@ -1121,26 +1171,6 @@
             showProfileMessage(`Added "${interest}" to interests`, 'success');
         };
 
-        const checkUsernameAvailability = async (username) => {
-            if (!username || username.length < 3) return true;
-            
-            try {
-                // Check if username follows rules (lowercase, numbers, underscore only)
-                if (!/^[a-z0-9_]+$/.test(username)) {
-                    return true; // Invalid format, treat as unavailable
-                }
-                
-                const usersRef = collection(db, "artifacts", appId, "users");
-                const q = query(usersRef, where("username", "==", username));
-                const querySnapshot = await getDocs(q);
-                
-                return !querySnapshot.empty;
-            } catch (error) {
-                console.error("Error checking username:", error);
-                return false;
-            }
-        };
-
         const uploadProfilePicture = async (file) => {
             if (!file || !currentUser) return null;
             
@@ -1238,7 +1268,7 @@
                 return;
             }
 
-            // Check username availability
+            // Check username availability using the improved function
             try {
                 const usernameTaken = await checkUsernameAvailability(username);
                 if (usernameTaken) {
@@ -1388,4 +1418,4 @@
         initializeApplication();
     </script>
 </body>
-</html>
+    </html>
