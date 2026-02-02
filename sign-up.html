@@ -39,26 +39,35 @@
             padding-right: 1rem;
         }
         
-        /* Glass Card */
+                /* Glass Card - EXPANDED WIDTH AND BORDER */
         .liquid-glass-card {
             background-color: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2); 
+            /* THICKER BORDER: Changed from 1px to 3px */
+            border: 3px solid rgba(255, 255, 255, 0.2); 
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px); 
-            width: 92%;
+            
+            /* PHYSICALLY WIDER: Increase width to 96% or 98% for mobile */
+            width: 96%; 
+            /* On larger screens, this allows it to expand further */
+            max-width: 500px; 
+            
             margin-left: auto;
             margin-right: auto;
+            
+            /* WIDER NEON GLOW: Increased spread and blur values */
             box-shadow: 
-                0 0 5px rgba(0, 0, 0, 0.5),
-                0 0 8px var(--neon-orange),
-                0 0 15px rgba(255, 153, 0, 0.1),
-                inset 0 0 5px var(--neon-cyan);
+                0 0 10px rgba(0, 0, 0, 0.5),
+                0 0 20px var(--neon-orange),       /* Wider orange aura */
+                0 0 45px rgba(255, 153, 0, 0.2),    /* Huge soft outer glow */
+                inset 0 0 15px var(--neon-cyan);    /* Wider inner liquid glow */
         }
 
+        /* Responsive adjustment to keep it wide on desktops */
         @media (min-width: 768px) {
             .liquid-glass-card {
-                width: auto;
-                max-width: none;
+                width: 100%;
+                max-width: 550px; /* Adjust this number to your liking */
             }
         }
 
