@@ -254,22 +254,93 @@
         .username-checking {
             border-color: #f59e0b !important;
         }
-        
-        /* Username status text styles */
-        .username-status-available {
-            color: #10b981;
+
+        /* Interest tags */
+        .interest-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid var(--neon-cyan);
+            color: #e5e7eb;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 4px;
+            transition: all 0.3s ease;
         }
-        
-        .username-status-taken {
-            color: #ef4444;
+
+        .interest-tag:hover {
+            background: rgba(6, 182, 212, 0.3);
         }
-        
-        .username-status-checking {
-            color: #f59e0b;
+
+        .interest-tag-remove {
+            background: none;
+            border: none;
+            color: var(--neon-orange);
+            margin-left: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
         }
-        
-        .username-status-error {
-            color: #ef4444;
+
+        .interest-tag-remove:hover {
+            background: rgba(255, 153, 0, 0.2);
+            color: white;
+        }
+
+        /* Interest container with flex-wrap */
+        #interest-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            min-height: 40px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Interest input and plus button */
+        .interest-input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        #custom-interest-input {
+            flex: 1;
+        }
+
+        #add-interest-btn {
+            background: var(--neon-cyan);
+            color: #0f0f1a;
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+        }
+
+        #add-interest-btn:hover {
+            background: #06a0c0;
+            transform: scale(1.05);
+        }
+
+        #add-interest-btn i {
+            font-size: 18px;
         }
     </style>
 </head>
@@ -508,12 +579,12 @@
                         <div>
                             <label for="profile-username" class="block text-sm font-medium text-gray-200 mb-2">Username *</label>
                             <input type="text" id="profile-username" placeholder="e.g., motion_flow_user" 
-                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600 username-checking" 
                                    required minlength="3" maxlength="20"
                                    oninput="validateUsername(this.value)">
-                            <div class="mt-1 flex items-center">
-                                <i id="username-status-icon" class="fas fa-circle text-gray-500 mr-2 text-xs"></i>
-                                <span id="username-status-text" class="text-xs text-gray-400">Start typing to check availability</span>
+                            <div class="text-xs text-gray-400 mt-1 flex items-center">
+                                <i id="username-status-icon" class="fas fa-circle text-yellow-500 mr-1 text-xs"></i>
+                                <span id="username-status-text">Checking availability...</span>
                             </div>
                             <div class="text-xs text-gray-500 mt-1">
                                 Only lowercase letters, numbers, and underscores allowed. No special characters (@,#,$,-).
@@ -573,19 +644,25 @@
                 <div id="step-3" class="step-container">
                     <h2 class="text-xl font-semibold mb-4 text-center">Neural Links</h2>
                     
-                    <!-- Interests -->
+                    <!-- Interests - FIXED: Tag system with plus button -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-200 mb-2">Interests (Optional)</label>
-                        <div class="flex flex-wrap gap-2 mb-4" id="interests-container"></div>
                         
-                        <!-- Custom Interest -->
-                        <div class="flex gap-2">
-                            <input type="text" id="custom-interest" placeholder="Add custom interest" 
-                                   class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
-                            <button type="button" id="add-interest-btn" class="bg-cyan-500 text-gray-900 px-4 py-3 rounded-lg font-semibold">
-                                <i class="fas fa-plus mr-2"></i>Add
+                        <!-- Tags Container with flex-wrap -->
+                        <div id="interest-tags-container">
+                            <!-- Interest tags will be added here -->
+                        </div>
+                        
+                        <!-- Custom Interest Input with Plus Button -->
+                        <div class="interest-input-container">
+                            <input type="text" id="custom-interest-input" placeholder="Add custom interest" 
+                                   class="glass-input p-3 rounded-lg placeholder-gray-600" 
+                                   onkeypress="handleInterestKeyPress(event)">
+                            <button type="button" id="add-interest-btn" class="px-4 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        <p class="text-xs text-gray-400 mt-2">Press Enter or click + to add. Click X to remove.</p>
                     </div>
 
                     <!-- Social Links - Updated to Instagram, YouTube, TikTok -->
@@ -654,7 +731,7 @@
             getFirestore, 
             doc, 
             setDoc,
-            collection,
+            collectionGroup,
             query,
             where,
             getDocs
@@ -689,11 +766,6 @@
         let currentStep = 1;
         const totalSteps = 3;
         
-        const availableInterests = [
-            "Animation", "Motion Design", "Visual Effects", "3D Modeling", "Graphic Design",
-            "Video Editing", "Cinematography", "Typography", "UI/UX Design", "Illustration"
-        ];
-
         const avatarOptions = [
             { id: 'boy1', url: 'https://files.catbox.moe/6zi1s7.jpg' },
             { id: 'boy2', url: 'https://files.catbox.moe/solusu.jpg' },
@@ -707,14 +779,13 @@
             { id: 'girl5', url: 'https://files.catbox.moe/t6mk1v.jpg' }
         ];
 
-        // Username availability check with proper debounce
+        // FIXED: Improved username availability check using Collection Group
         let usernameCheckTimeout = null;
         let lastCheckedUsername = '';
         let lastCheckResult = null;
-        let isCheckingUsername = false;
 
         const checkUsernameAvailability = async (username) => {
-            if (!username || username.length < 3) return null;
+            if (!username || username.length < 3) return true;
             
             // Check if we already checked this username recently
             if (username === lastCheckedUsername && lastCheckResult !== null) {
@@ -722,11 +793,9 @@
             }
             
             try {
-                // Query Firestore for the username field specifically
-                const usersRef = collection(db, 'artifacts', appId, 'users');
-                
-                // Create a query to check if username exists
-                const q = query(usersRef, where("username", "==", username));
+                // Use Collection Group query to check across all 'settings' sub-collections
+                const settingsCollectionGroup = collectionGroup(db, 'settings');
+                const q = query(settingsCollectionGroup, where("username", "==", username));
                 const querySnapshot = await getDocs(q);
                 
                 const isTaken = !querySnapshot.empty;
@@ -738,12 +807,12 @@
                 return isTaken;
             } catch (error) {
                 console.error("Error checking username availability:", error);
-                // On error, return null to indicate unknown status
-                return null;
+                // On error, assume username is taken to be safe
+                return true;
             }
         };
 
-        // FIXED: Username validation with proper debounce and UI updates
+        // FIXED: Username validation with proper debounce
         window.validateUsername = async (username) => {
             const usernameInput = document.getElementById('profile-username');
             const statusIcon = document.getElementById('username-status-icon');
@@ -755,79 +824,114 @@
                 usernameCheckTimeout = null;
             }
             
-            // Validate format first
-            if (!username || username.length === 0) {
-                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
-                statusIcon.className = 'fas fa-circle text-gray-500 mr-2 text-xs';
-                statusText.textContent = 'Start typing to check availability';
-                statusText.className = 'text-xs text-gray-400';
-                return;
-            }
+            // Reset to checking state
+            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+            usernameInput.classList.add('username-checking');
+            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
+            statusText.textContent = 'Checking...';
+            statusText.className = 'text-xs text-yellow-500';
             
+            // Validate format first
             if (!/^[a-z0-9_]+$/.test(username)) {
-                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+                usernameInput.classList.remove('username-checking');
                 usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
                 statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
-                statusText.className = 'text-xs username-status-error';
+                statusText.className = 'text-xs text-red-500';
                 return;
             }
             
             if (username.length < 3) {
-                usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+                usernameInput.classList.remove('username-checking');
                 usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
                 statusText.textContent = 'Username must be at least 3 characters';
-                statusText.className = 'text-xs username-status-error';
+                statusText.className = 'text-xs text-red-500';
                 return;
             }
             
-            // Set checking state
-            usernameInput.classList.remove('username-valid', 'username-invalid');
-            usernameInput.classList.add('username-checking');
-            statusIcon.className = 'fas fa-circle-notch fa-spin text-yellow-500 mr-2 text-xs';
-            statusText.textContent = 'Checking availability...';
-            statusText.className = 'text-xs username-status-checking';
-            
             // Set debounce timeout for Firestore query
             usernameCheckTimeout = setTimeout(async () => {
-                isCheckingUsername = true;
                 try {
                     const isTaken = await checkUsernameAvailability(username);
                     
-                    if (isTaken === null) {
-                        // Error occurred
+                    if (isTaken) {
                         usernameInput.classList.remove('username-checking');
                         usernameInput.classList.add('username-invalid');
-                        statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-2 text-xs';
-                        statusText.textContent = 'Error checking username';
-                        statusText.className = 'text-xs username-status-error';
-                    } else if (isTaken) {
-                        // Username is taken
-                        usernameInput.classList.remove('username-checking');
-                        usernameInput.classList.add('username-invalid');
-                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-2 text-xs';
+                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
                         statusText.textContent = 'Username is already taken';
-                        statusText.className = 'text-xs username-status-taken';
+                        statusText.className = 'text-xs text-red-500';
                     } else {
-                        // Username is available
                         usernameInput.classList.remove('username-checking');
                         usernameInput.classList.add('username-valid');
-                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-2 text-xs';
+                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
                         statusText.textContent = 'Username is available';
-                        statusText.className = 'text-xs username-status-available';
+                        statusText.className = 'text-xs text-green-500';
                     }
                 } catch (error) {
                     console.error("Error validating username:", error);
                     usernameInput.classList.remove('username-checking');
                     usernameInput.classList.add('username-invalid');
-                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-2 text-xs';
+                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
                     statusText.textContent = 'Error checking username';
-                    statusText.className = 'text-xs username-status-error';
-                } finally {
-                    isCheckingUsername = false;
+                    statusText.className = 'text-xs text-red-500';
                 }
             }, 500); // 500ms debounce delay
+        };
+
+        // FIXED: Interest system functions
+        const addInterestTag = (interest) => {
+            if (!interest || interest.trim() === '') return;
+            
+            interest = interest.trim();
+            
+            // Check if already exists
+            if (selectedInterests.has(interest)) {
+                showProfileMessage(`"${interest}" is already added`, 'info');
+                return;
+            }
+            
+            // Check limit
+            if (selectedInterests.size >= 10) {
+                showProfileMessage("Maximum 10 interests allowed", 'info');
+                return;
+            }
+            
+            // Add to set
+            selectedInterests.add(interest);
+            
+            // Create tag element
+            const tagContainer = document.getElementById('interest-tags-container');
+            const tag = document.createElement('div');
+            tag.className = 'interest-tag';
+            tag.innerHTML = `
+                ${interest}
+                <button class="interest-tag-remove" onclick="removeInterestTag('${interest}', this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            tagContainer.appendChild(tag);
+            
+            // Clear input
+            document.getElementById('custom-interest-input').value = '';
+        };
+
+        window.removeInterestTag = (interest, button) => {
+            if (selectedInterests.has(interest)) {
+                selectedInterests.delete(interest);
+                const tag = button.closest('.interest-tag');
+                if (tag) {
+                    tag.remove();
+                }
+            }
+        };
+
+        window.handleInterestKeyPress = (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const input = document.getElementById('custom-interest-input');
+                addInterestTag(input.value);
+            }
         };
 
         // UI Functions
@@ -908,12 +1012,6 @@
                 const username = document.getElementById('profile-username').value.trim();
                 const nickname = document.getElementById('profile-nickname').value.trim();
                 
-                // Check if username validation is still in progress
-                if (isCheckingUsername) {
-                    showProfileMessage("Please wait while we check username availability", 'error');
-                    return;
-                }
-                
                 if (!username || username.length < 3) {
                     showProfileMessage("Username must be at least 3 characters", 'error');
                     return;
@@ -922,18 +1020,6 @@
                 // Check username format
                 if (!/^[a-z0-9_]+$/.test(username)) {
                     showProfileMessage("Username can only contain lowercase letters, numbers, and underscores", 'error');
-                    return;
-                }
-                
-                // Check if username is taken
-                const usernameInput = document.getElementById('profile-username');
-                if (usernameInput.classList.contains('username-invalid')) {
-                    showProfileMessage("Please choose a valid and available username", 'error');
-                    return;
-                }
-                
-                if (!usernameInput.classList.contains('username-valid')) {
-                    showProfileMessage("Please wait for username validation to complete", 'error');
                     return;
                 }
                 
@@ -1064,6 +1150,8 @@
                 currentUser = user;
                 
                 const tempUsername = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') + Math.floor(Math.random() * 1000);
+                
+                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
                 const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'settings');
                 
                 await setDoc(userDocRef, {
@@ -1135,12 +1223,14 @@
             });
 
             // Setup interests
-            initializeInterests();
+            document.getElementById('add-interest-btn').addEventListener('click', () => {
+                const input = document.getElementById('custom-interest-input');
+                addInterestTag(input.value);
+            });
 
             // Setup step navigation
             document.getElementById('step-1-next').addEventListener('click', () => goToStep(2));
             document.getElementById('step-2-next').addEventListener('click', () => goToStep(3));
-            document.getElementById('add-interest-btn').addEventListener('click', addCustomInterest);
             document.getElementById('skip-button').addEventListener('click', skipProfileSetup);
             document.getElementById('enter-flow-button').addEventListener('click', handleProfileSubmit);
         };
@@ -1160,82 +1250,6 @@
             
             // Set custom avatar preview to selected avatar
             document.getElementById('custom-avatar-preview').src = avatarUrl;
-        };
-
-        const initializeInterests = () => {
-            const container = document.getElementById('interests-container');
-            container.innerHTML = '';
-            
-            availableInterests.forEach(interest => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'px-3 py-2 rounded-lg border border-gray-600 text-gray-300 text-sm';
-                button.textContent = interest;
-                button.setAttribute('data-interest', interest);
-                button.addEventListener('click', () => toggleInterest(interest, button));
-                
-                if (selectedInterests.has(interest)) {
-                    button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
-                    button.classList.remove('border-gray-600', 'text-gray-300');
-                }
-                
-                container.appendChild(button);
-            });
-        };
-
-        const toggleInterest = (interest, button) => {
-            if (selectedInterests.has(interest)) {
-                selectedInterests.delete(interest);
-                button.classList.remove('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
-                button.classList.add('border-gray-600', 'text-gray-300');
-            } else {
-                if (selectedInterests.size >= 5) {
-                    showProfileMessage("You can select up to 5 interests", 'info');
-                    return;
-                }
-                selectedInterests.add(interest);
-                button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
-                button.classList.remove('border-gray-600', 'text-gray-300');
-            }
-        };
-
-        const addCustomInterest = () => {
-            const input = document.getElementById('custom-interest');
-            const interest = input.value.trim();
-            
-            if (!interest) {
-                showProfileMessage("Please enter an interest", 'error');
-                return;
-            }
-            
-            if (interest.length > 20) {
-                showProfileMessage("Interest must be less than 20 characters", 'error');
-                return;
-            }
-            
-            if (selectedInterests.has(interest)) {
-                showProfileMessage("This interest is already selected", 'info');
-                return;
-            }
-            
-            if (selectedInterests.size >= 5) {
-                showProfileMessage("You can select up to 5 interests", 'info');
-                return;
-            }
-            
-            selectedInterests.add(interest);
-            
-            const container = document.getElementById('interests-container');
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'px-3 py-2 rounded-lg bg-cyan-500 border border-cyan-500 text-gray-900 text-sm';
-            button.textContent = interest;
-            button.setAttribute('data-interest', interest);
-            button.addEventListener('click', () => toggleInterest(interest, button));
-            container.appendChild(button);
-            
-            input.value = '';
-            showProfileMessage(`Added "${interest}" to interests`, 'success');
         };
 
         const uploadProfilePicture = async (file) => {
@@ -1269,6 +1283,8 @@
                 document.getElementById('enter-flow-button').disabled = true;
                 
                 const tempUsername = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') + Math.floor(Math.random() * 1000);
+                
+                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
                 const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
                 
                 const userDataUpdate = {
@@ -1335,14 +1351,7 @@
                 return;
             }
 
-            // Check if username is taken by looking at the UI state
-            const usernameInput = document.getElementById('profile-username');
-            if (!usernameInput.classList.contains('username-valid')) {
-                showProfileMessage("Please choose a valid and available username", 'error');
-                return;
-            }
-
-            // Check username availability one more time to be sure
+            // Check username availability using the improved function
             try {
                 const usernameTaken = await checkUsernameAvailability(username);
                 if (usernameTaken) {
@@ -1390,10 +1399,15 @@
                         tiktok: tiktok || null
                     },
                     profileCompleted: true,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: new Date().toISOString(),
+                    // Add these fields for consistency
+                    appId: appId,
+                    accountType: 'email',
+                    status: 'active',
+                    createdAt: new Date().toISOString()
                 };
 
-                // Save to Firestore
+                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
                 const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
                 await setDoc(userDocRef, userDataUpdate, { merge: true });
 
