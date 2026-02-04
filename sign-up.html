@@ -23,54 +23,27 @@
             color: #e5e7eb;
         }
         
-        /* Fixed: Logo styling to prevent wrapping on mobile */
-        .logo-text {
-            font-family: 'Orbitron', sans-serif;
-            color: #ffffff;
-            text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(6, 182, 212, 0.5);
-            white-space: nowrap;
-            font-size: clamp(1.5rem, 8vw, 2.5rem);
-            padding: 0 1rem;
-        }
-        
-        /* Main container padding for mobile */
-        #app-container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        /* Glass Card - PERFECTLY CENTERED & EXTRA WIDE */
+        /* Glass Card */
         .liquid-glass-card {
             background-color: rgba(255, 255, 255, 0.05);
-            /* THICKER BORDER: Let's actually set it to 3px like you wanted */
             border: 1px solid rgba(255, 255, 255, 0.1); 
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px); 
-            
-            /* THE FIX: Use 98% to almost touch the edges, or 100% to touch them */
-            width: 100%; 
-            max-width: 600px; /* Increased this so it looks wider on big screens */
-            
-            /* Centering logic */
+            width: 100%;
             margin-left: auto;
             margin-right: auto;
-            display: block;
-            position: relative;
-            
-            /* REDUCED NEON GLOW */
             box-shadow: 
-                0 0 10px rgba(0, 0, 0, 0.5),      /* Shadow depth */
-                0 0 10px var(--neon-orange),     /* Reduced from 25px */
-                0 0 20px rgba(255, 153, 0, 0.15), /* Reduced from 50px */
-                inset 0 0 8px var(--neon-cyan);   /* Reduced from 15px */
+                0 0 5px rgba(0, 0, 0, 0.5),
+                0 0 8px var(--neon-orange),
+                0 0 15px rgba(255, 153, 0, 0.1),
+                inset 0 0 5px var(--neon-cyan);
         }
 
-        /* Fix for the container to allow the wide card */
-        #app-container {
-            width: 100%;
-            max-width: 100%; /* Ensures the parent doesn't squeeze the card */
-            display: flex;
-            justify-content: center;
+        @media (min-width: 768px) {
+            .liquid-glass-card {
+                width: auto;
+                max-width: none;
+            }
         }
 
         /* Inputs */
@@ -116,6 +89,12 @@
             justify-content: center;
         }
         
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffffff;
+            text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(6, 182, 212, 0.5);
+        }
+
         /* Avatar styling - FIXED: Proper circle shape */
         .avatar-circle {
             width: 80px;
@@ -254,93 +233,11 @@
         .username-checking {
             border-color: #f59e0b !important;
         }
-
-        /* Interest tags */
-        .interest-tag {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(6, 182, 212, 0.2);
-            border: 1px solid var(--neon-cyan);
-            color: #e5e7eb;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .interest-tag:hover {
-            background: rgba(6, 182, 212, 0.3);
-        }
-
-        .interest-tag-remove {
-            background: none;
-            border: none;
-            color: var(--neon-orange);
-            margin-left: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            padding: 0;
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .interest-tag-remove:hover {
-            background: rgba(255, 153, 0, 0.2);
-            color: white;
-        }
-
-        /* Interest container with flex-wrap */
-        #interest-tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-            min-height: 40px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* Interest input and plus button */
-        .interest-input-container {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        #custom-interest-input {
-            flex: 1;
-        }
-
-        #add-interest-btn {
-            background: var(--neon-cyan);
-            color: #0f0f1a;
-            border: none;
-            border-radius: 8px;
-            padding: 0 16px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 50px;
-        }
-
-        #add-interest-btn:hover {
-            background: #06a0c0;
-            transform: scale(1.05);
-        }
-
-        #add-interest-btn i {
-            font-size: 18px;
+        
+        /* Disabled navigation button */
+        .nav-button-disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
         }
     </style>
 </head>
@@ -350,10 +247,7 @@
         <!-- Sign Up View -->
         <div id="signup-view">
             <div class="liquid-glass-card p-6 sm:p-8 md:p-10 rounded-xl shadow-2xl">
-                <!-- Fixed: Logo with fluid font size and no wrapping -->
-                <div class="flex justify-center mb-2">
-                    <h1 class="logo-text">MOTION FLOW</h1>
-                </div>
+                <h1 class="text-4xl font-bold text-center logo-text mb-2">MOTION FLOW</h1>
                 <p class="text-center text-gray-400 mb-8">Create your account</p>
 
                 <div id="message-box" class="hidden p-4 mb-4 rounded-lg text-sm bg-opacity-30"></div>
@@ -465,7 +359,7 @@
             <div class="liquid-glass-card p-6 md:p-8 rounded-xl">
                 <!-- Header -->
                 <div class="text-center mb-6">
-                    <h1 class="logo-text">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2 font-['Orbitron']">
                         MOTION<span style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-orange)); -webkit-background-clip: text; background-clip: text; color: transparent;">FLOW</span>
                     </h1>
                     <p class="text-gray-400 text-sm md:text-base">Complete your profile to join the community</p>
@@ -601,7 +495,7 @@
                     </div>
 
                     <!-- Next Button -->
-                    <button id="step-1-next" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md mt-6">
+                    <button id="step-1-next" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md mt-6 nav-button-disabled" disabled>
                         Next Protocol
                     </button>
                 </div>
@@ -644,25 +538,19 @@
                 <div id="step-3" class="step-container">
                     <h2 class="text-xl font-semibold mb-4 text-center">Neural Links</h2>
                     
-                    <!-- Interests - FIXED: Tag system with plus button -->
+                    <!-- Interests -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-200 mb-2">Interests (Optional)</label>
+                        <div class="flex flex-wrap gap-2 mb-4" id="interests-container"></div>
                         
-                        <!-- Tags Container with flex-wrap -->
-                        <div id="interest-tags-container">
-                            <!-- Interest tags will be added here -->
-                        </div>
-                        
-                        <!-- Custom Interest Input with Plus Button -->
-                        <div class="interest-input-container">
-                            <input type="text" id="custom-interest-input" placeholder="Add custom interest" 
-                                   class="glass-input p-3 rounded-lg placeholder-gray-600" 
-                                   onkeypress="handleInterestKeyPress(event)">
-                            <button type="button" id="add-interest-btn" class="px-4 py-3 rounded-lg font-semibold">
-                                <i class="fas fa-plus"></i>
+                        <!-- Custom Interest -->
+                        <div class="flex gap-2">
+                            <input type="text" id="custom-interest" placeholder="Add custom interest" 
+                                   class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
+                            <button type="button" id="add-interest-btn" class="bg-cyan-500 text-gray-900 px-4 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-plus mr-2"></i>Add
                             </button>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2">Press Enter or click + to add. Click X to remove.</p>
                     </div>
 
                     <!-- Social Links - Updated to Instagram, YouTube, TikTok -->
@@ -731,7 +619,7 @@
             getFirestore, 
             doc, 
             setDoc,
-            collectionGroup,
+            collection,
             query,
             where,
             getDocs
@@ -766,6 +654,11 @@
         let currentStep = 1;
         const totalSteps = 3;
         
+        const availableInterests = [
+            "Animation", "Motion Design", "Visual Effects", "3D Modeling", "Graphic Design",
+            "Video Editing", "Cinematography", "Typography", "UI/UX Design", "Illustration"
+        ];
+
         const avatarOptions = [
             { id: 'boy1', url: 'https://files.catbox.moe/6zi1s7.jpg' },
             { id: 'boy2', url: 'https://files.catbox.moe/solusu.jpg' },
@@ -778,161 +671,6 @@
             { id: 'girl4', url: 'https://files.catbox.moe/78v4je.jpg' },
             { id: 'girl5', url: 'https://files.catbox.moe/t6mk1v.jpg' }
         ];
-
-        // FIXED: Improved username availability check using Collection Group
-        let usernameCheckTimeout = null;
-        let lastCheckedUsername = '';
-        let lastCheckResult = null;
-
-        const checkUsernameAvailability = async (username) => {
-            if (!username || username.length < 3) return true;
-            
-            // Check if we already checked this username recently
-            if (username === lastCheckedUsername && lastCheckResult !== null) {
-                return lastCheckResult;
-            }
-            
-            try {
-                // Use Collection Group query to check across all 'settings' sub-collections
-                const settingsCollectionGroup = collectionGroup(db, 'settings');
-                const q = query(settingsCollectionGroup, where("username", "==", username));
-                const querySnapshot = await getDocs(q);
-                
-                const isTaken = !querySnapshot.empty;
-                
-                // Cache the result
-                lastCheckedUsername = username;
-                lastCheckResult = isTaken;
-                
-                return isTaken;
-            } catch (error) {
-                console.error("Error checking username availability:", error);
-                // On error, assume username is taken to be safe
-                return true;
-            }
-        };
-
-        // FIXED: Username validation with proper debounce
-        window.validateUsername = async (username) => {
-            const usernameInput = document.getElementById('profile-username');
-            const statusIcon = document.getElementById('username-status-icon');
-            const statusText = document.getElementById('username-status-text');
-            
-            // Clear any existing timeout
-            if (usernameCheckTimeout) {
-                clearTimeout(usernameCheckTimeout);
-                usernameCheckTimeout = null;
-            }
-            
-            // Reset to checking state
-            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
-            usernameInput.classList.add('username-checking');
-            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
-            statusText.textContent = 'Checking...';
-            statusText.className = 'text-xs text-yellow-500';
-            
-            // Validate format first
-            if (!/^[a-z0-9_]+$/.test(username)) {
-                usernameInput.classList.remove('username-checking');
-                usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
-                statusText.className = 'text-xs text-red-500';
-                return;
-            }
-            
-            if (username.length < 3) {
-                usernameInput.classList.remove('username-checking');
-                usernameInput.classList.add('username-invalid');
-                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                statusText.textContent = 'Username must be at least 3 characters';
-                statusText.className = 'text-xs text-red-500';
-                return;
-            }
-            
-            // Set debounce timeout for Firestore query
-            usernameCheckTimeout = setTimeout(async () => {
-                try {
-                    const isTaken = await checkUsernameAvailability(username);
-                    
-                    if (isTaken) {
-                        usernameInput.classList.remove('username-checking');
-                        usernameInput.classList.add('username-invalid');
-                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
-                        statusText.textContent = 'Username is already taken';
-                        statusText.className = 'text-xs text-red-500';
-                    } else {
-                        usernameInput.classList.remove('username-checking');
-                        usernameInput.classList.add('username-valid');
-                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
-                        statusText.textContent = 'Username is available';
-                        statusText.className = 'text-xs text-green-500';
-                    }
-                } catch (error) {
-                    console.error("Error validating username:", error);
-                    usernameInput.classList.remove('username-checking');
-                    usernameInput.classList.add('username-invalid');
-                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
-                    statusText.textContent = 'Error checking username';
-                    statusText.className = 'text-xs text-red-500';
-                }
-            }, 500); // 500ms debounce delay
-        };
-
-        // FIXED: Interest system functions
-        const addInterestTag = (interest) => {
-            if (!interest || interest.trim() === '') return;
-            
-            interest = interest.trim();
-            
-            // Check if already exists
-            if (selectedInterests.has(interest)) {
-                showProfileMessage(`"${interest}" is already added`, 'info');
-                return;
-            }
-            
-            // Check limit
-            if (selectedInterests.size >= 10) {
-                showProfileMessage("Maximum 10 interests allowed", 'info');
-                return;
-            }
-            
-            // Add to set
-            selectedInterests.add(interest);
-            
-            // Create tag element
-            const tagContainer = document.getElementById('interest-tags-container');
-            const tag = document.createElement('div');
-            tag.className = 'interest-tag';
-            tag.innerHTML = `
-                ${interest}
-                <button class="interest-tag-remove" onclick="removeInterestTag('${interest}', this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            tagContainer.appendChild(tag);
-            
-            // Clear input
-            document.getElementById('custom-interest-input').value = '';
-        };
-
-        window.removeInterestTag = (interest, button) => {
-            if (selectedInterests.has(interest)) {
-                selectedInterests.delete(interest);
-                const tag = button.closest('.interest-tag');
-                if (tag) {
-                    tag.remove();
-                }
-            }
-        };
-
-        window.handleInterestKeyPress = (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const input = document.getElementById('custom-interest-input');
-                addInterestTag(input.value);
-            }
-        };
 
         // UI Functions
         const showCustomModal = (title, message) => {
@@ -1005,7 +743,7 @@
             }
         };
 
-        // Step Navigation
+        // Step Navigation with Validation Lock
         const goToStep = (step) => {
             // Validate current step before proceeding
             if (step === 2) {
@@ -1020,6 +758,25 @@
                 // Check username format
                 if (!/^[a-z0-9_]+$/.test(username)) {
                     showProfileMessage("Username can only contain lowercase letters, numbers, and underscores", 'error');
+                    return;
+                }
+                
+                // Check if username is taken (from validation status)
+                const usernameInput = document.getElementById('profile-username');
+                if (usernameInput.classList.contains('username-invalid')) {
+                    showProfileMessage("Username is not available. Please choose another one.", 'error');
+                    return;
+                }
+                
+                // If still checking, prevent navigation
+                if (usernameInput.classList.contains('username-checking')) {
+                    showProfileMessage("Please wait while we check username availability", 'error');
+                    return;
+                }
+                
+                // If not valid, prevent navigation
+                if (!usernameInput.classList.contains('username-valid')) {
+                    showProfileMessage("Please choose a valid username first", 'error');
                     return;
                 }
                 
@@ -1041,6 +798,84 @@
             });
             
             currentStep = step;
+        };
+
+        // Username Validation
+        let usernameTimeout = null;
+        window.validateUsername = async (username) => {
+            const usernameInput = document.getElementById('profile-username');
+            const statusIcon = document.getElementById('username-status-icon');
+            const statusText = document.getElementById('username-status-text');
+            const nextButton = document.getElementById('step-1-next');
+            
+            // Clear previous timeout
+            if (usernameTimeout) clearTimeout(usernameTimeout);
+            
+            // Reset styles and disable next button
+            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+            usernameInput.classList.add('username-checking');
+            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
+            statusText.textContent = 'Checking...';
+            statusText.className = 'text-xs text-yellow-500';
+            nextButton.disabled = true;
+            nextButton.classList.add('nav-button-disabled');
+            
+            // Validate format
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
+                statusText.className = 'text-xs text-red-500';
+                nextButton.disabled = true;
+                nextButton.classList.add('nav-button-disabled');
+                return;
+            }
+            
+            if (username.length < 3) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Username must be at least 3 characters';
+                statusText.className = 'text-xs text-red-500';
+                nextButton.disabled = true;
+                nextButton.classList.add('nav-button-disabled');
+                return;
+            }
+            
+            // Debounce the Firebase check
+            usernameTimeout = setTimeout(async () => {
+                try {
+                    const usernameTaken = await checkUsernameAvailability(username);
+                    
+                    if (usernameTaken) {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-invalid');
+                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is already taken';
+                        statusText.className = 'text-xs text-red-500';
+                        nextButton.disabled = true;
+                        nextButton.classList.add('nav-button-disabled');
+                    } else {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-valid');
+                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is available';
+                        statusText.className = 'text-xs text-green-500';
+                        nextButton.disabled = false;
+                        nextButton.classList.remove('nav-button-disabled');
+                    }
+                } catch (error) {
+                    console.error("Username check error:", error);
+                    usernameInput.classList.remove('username-checking');
+                    usernameInput.classList.add('username-invalid');
+                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
+                    statusText.textContent = 'Error checking username';
+                    statusText.className = 'text-xs text-red-500';
+                    nextButton.disabled = true;
+                    nextButton.classList.add('nav-button-disabled');
+                }
+            }, 500);
         };
 
         // Profile Picture Upload
@@ -1151,8 +986,8 @@
                 
                 const tempUsername = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') + Math.floor(Math.random() * 1000);
                 
-                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
-                const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'settings');
+                // UPDATED: Write to top-level users collection instead of nested path
+                const userDocRef = doc(db, 'users', user.uid);
                 
                 await setDoc(userDocRef, {
                     uid: user.uid,
@@ -1223,16 +1058,20 @@
             });
 
             // Setup interests
-            document.getElementById('add-interest-btn').addEventListener('click', () => {
-                const input = document.getElementById('custom-interest-input');
-                addInterestTag(input.value);
-            });
+            initializeInterests();
 
             // Setup step navigation
             document.getElementById('step-1-next').addEventListener('click', () => goToStep(2));
             document.getElementById('step-2-next').addEventListener('click', () => goToStep(3));
+            document.getElementById('add-interest-btn').addEventListener('click', addCustomInterest);
             document.getElementById('skip-button').addEventListener('click', skipProfileSetup);
             document.getElementById('enter-flow-button').addEventListener('click', handleProfileSubmit);
+            
+            // Initialize username validation
+            const usernameInput = document.getElementById('profile-username');
+            if (usernameInput.value) {
+                validateUsername(usernameInput.value);
+            }
         };
 
         const selectAvatar = (avatarId, avatarUrl) => {
@@ -1250,6 +1089,103 @@
             
             // Set custom avatar preview to selected avatar
             document.getElementById('custom-avatar-preview').src = avatarUrl;
+        };
+
+        const initializeInterests = () => {
+            const container = document.getElementById('interests-container');
+            container.innerHTML = '';
+            
+            availableInterests.forEach(interest => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'px-3 py-2 rounded-lg border border-gray-600 text-gray-300 text-sm';
+                button.textContent = interest;
+                button.setAttribute('data-interest', interest);
+                button.addEventListener('click', () => toggleInterest(interest, button));
+                
+                if (selectedInterests.has(interest)) {
+                    button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                    button.classList.remove('border-gray-600', 'text-gray-300');
+                }
+                
+                container.appendChild(button);
+            });
+        };
+
+        const toggleInterest = (interest, button) => {
+            if (selectedInterests.has(interest)) {
+                selectedInterests.delete(interest);
+                button.classList.remove('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                button.classList.add('border-gray-600', 'text-gray-300');
+            } else {
+                if (selectedInterests.size >= 5) {
+                    showProfileMessage("You can select up to 5 interests", 'info');
+                    return;
+                }
+                selectedInterests.add(interest);
+                button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                button.classList.remove('border-gray-600', 'text-gray-300');
+            }
+        };
+
+        const addCustomInterest = () => {
+            const input = document.getElementById('custom-interest');
+            const interest = input.value.trim();
+            
+            if (!interest) {
+                showProfileMessage("Please enter an interest", 'error');
+                return;
+            }
+            
+            if (interest.length > 20) {
+                showProfileMessage("Interest must be less than 20 characters", 'error');
+                return;
+            }
+            
+            if (selectedInterests.has(interest)) {
+                showProfileMessage("This interest is already selected", 'info');
+                return;
+            }
+            
+            if (selectedInterests.size >= 5) {
+                showProfileMessage("You can select up to 5 interests", 'info');
+                return;
+            }
+            
+            selectedInterests.add(interest);
+            
+            const container = document.getElementById('interests-container');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'px-3 py-2 rounded-lg bg-cyan-500 border border-cyan-500 text-gray-900 text-sm';
+            button.textContent = interest;
+            button.setAttribute('data-interest', interest);
+            button.addEventListener('click', () => toggleInterest(interest, button));
+            container.appendChild(button);
+            
+            input.value = '';
+            showProfileMessage(`Added "${interest}" to interests`, 'success');
+        };
+
+        const checkUsernameAvailability = async (username) => {
+            if (!username || username.length < 3) return true;
+            
+            try {
+                // Check if username follows rules (lowercase, numbers, underscore only)
+                if (!/^[a-z0-9_]+$/.test(username)) {
+                    return true; // Invalid format, treat as unavailable
+                }
+                
+                // UPDATED: Query the top-level users collection
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(q);
+                
+                return !querySnapshot.empty;
+            } catch (error) {
+                console.error("Error checking username:", error);
+                return false;
+            }
         };
 
         const uploadProfilePicture = async (file) => {
@@ -1284,8 +1220,8 @@
                 
                 const tempUsername = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') + Math.floor(Math.random() * 1000);
                 
-                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
+                // UPDATED: Write to top-level users collection
+                const userDocRef = doc(db, 'users', currentUser.uid);
                 
                 const userDataUpdate = {
                     uid: currentUser.uid,
@@ -1303,7 +1239,8 @@
                 showProfileMessage("Profile created with default settings. Redirecting...", 'success');
                 
                 setTimeout(() => {
-                    window.location.href = 'homepage.html'; // Redirect to homepage.html
+                    // UPDATED: Redirect path - homepage.html should now look in users/{uid}
+                    window.location.href = 'homepage.html';
                 }, 1500);
                 
             } catch (error) {
@@ -1351,7 +1288,7 @@
                 return;
             }
 
-            // Check username availability using the improved function
+            // Check username availability
             try {
                 const usernameTaken = await checkUsernameAvailability(username);
                 if (usernameTaken) {
@@ -1399,21 +1336,16 @@
                         tiktok: tiktok || null
                     },
                     profileCompleted: true,
-                    updatedAt: new Date().toISOString(),
-                    // Add these fields for consistency
-                    appId: appId,
-                    accountType: 'email',
-                    status: 'active',
-                    createdAt: new Date().toISOString()
+                    updatedAt: new Date().toISOString()
                 };
 
-                // FIXED: Save to exact path: artifacts/motion-flow-v1/users/{uid}/profile/settings
-                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'settings');
+                // UPDATED: Save to top-level users collection
+                const userDocRef = doc(db, 'users', currentUser.uid);
                 await setDoc(userDocRef, userDataUpdate, { merge: true });
 
                 showProfileMessage("Profile setup complete! Redirecting...", 'success');
                 
-                // Redirect to homepage.html
+                // Redirect to homepage.html (which should now look for user in users/{uid})
                 setTimeout(() => {
                     window.location.href = 'homepage.html';
                 }, 1500);
