@@ -1317,6 +1317,10 @@
         nicknameElement.textContent = userData.nickname;
         publicNickname.textContent = userData.nickname;
         privateNickname.textContent = userData.nickname;
+      } else if (userData.displayName) {
+        nicknameElement.textContent = userData.displayName;
+        publicNickname.textContent = userData.displayName;
+        privateNickname.textContent = userData.displayName;
       } else if (userData.username) {
         nicknameElement.textContent = userData.username;
         publicNickname.textContent = userData.username;
@@ -1331,6 +1335,11 @@
       if (userData.username) {
         usernameElement.textContent = `@${userData.username}`;
         publicUsername.textContent = `@${userData.username}`;
+      } else if (userData.email) {
+        // Fallback to email username
+        const emailUsername = userData.email.split('@')[0];
+        usernameElement.textContent = `@${emailUsername}`;
+        publicUsername.textContent = `@${emailUsername}`;
       } else {
         usernameElement.textContent = "@username";
         publicUsername.textContent = "@username";
@@ -1339,6 +1348,8 @@
       // Set full name (private)
       if (userData.fullName) {
         privateFullname.textContent = userData.fullName;
+      } else if (userData.name) {
+        privateFullname.textContent = userData.name;
       } else {
         privateFullname.textContent = "Not specified";
       }
@@ -1364,18 +1375,22 @@
         profileBio.textContent = "No bio yet.";
       }
       
-      // Set profile pictures - FIXED PATH
-      if (userData.profileImage) {
+      // Set profile picture - Check multiple possible field names
+      const profilePic = userData.profileImage || userData.profilePicture || userData.photoURL || userData.avatar;
+      if (profilePic) {
         profileAvatar.innerHTML = `
-          <img src="${userData.profileImage}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${userData.nickname || userData.username || 'User'}&background=1a1a2e&color=fff&size=180'">
+          <img src="${profilePic}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${userData.nickname || userData.displayName || userData.username || 'User'}&background=1a1a2e&color=fff&size=180'">
           <div class="avatar-overlay">
             <i class="fas fa-camera"></i>
           </div>
         `;
-      } else if (userData.profilePicture) {
-        // Alternative field name
+      } else {
+        // Default avatar
+        const nameForAvatar = userData.nickname || userData.displayName || userData.username || 'User';
         profileAvatar.innerHTML = `
-          <img src="${userData.profilePicture}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${userData.nickname || userData.username || 'User'}&background=1a1a2e&color=fff&size=180'">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--color-accent);">
+            <i class="fas fa-user" style="font-size: 4em;"></i>
+          </div>
           <div class="avatar-overlay">
             <i class="fas fa-camera"></i>
           </div>
@@ -1429,6 +1444,8 @@
         if (socialLinksContainer.children.length === 0) {
           socialLinksContainer.innerHTML = '<div style="color: var(--color-text-muted);">No social links added</div>';
         }
+      } else {
+        socialLinksContainer.innerHTML = '<div style="color: var(--color-text-muted);">No social links added</div>';
       }
       
       // Set privacy settings (private)
@@ -1465,33 +1482,21 @@
       isDataLoaded = true;
     }
 
-    // Load user profile data from Firestore - FIXED PATH
+    // Load user profile data from Firestore - UPDATED TO USE TOP-LEVEL COLLECTION
     async function loadUserProfile(userId) {
       try {
         console.log('Loading profile for user:', userId);
         
-        // Try multiple possible paths where user data might be stored
-        const possiblePaths = [
-          doc(db, "artifacts", "motion-flow-v1", "users", userId, "profile", "settings"), // From signup
-          doc(db, "users", userId) // Alternative path
-        ];
+        // UPDATED: Now using top-level collection 'users/{userId}'
+        const userDocRef = doc(db, "users", userId);
+        console.log('Fetching from path:', userDocRef.path);
         
-        let userData = null;
+        const userDoc = await getDoc(userDocRef);
         
-        for (const userDocRef of possiblePaths) {
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              userData = userDoc.data();
-              console.log('User data loaded from path:', userDocRef.path, userData);
-              break;
-            }
-          } catch (err) {
-            console.log('Path not found:', userDocRef.path, err.message);
-          }
-        }
-        
-        if (userData) {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log('User data loaded:', userData);
+          
           // Check if profile is completed
           if (userData.profileCompleted === false) {
             console.log('⚠️ Profile not completed - redirecting to setup');
@@ -1513,14 +1518,24 @@
           }, 500);
           
         } else {
-          console.log('⚠️ User data not found in any path - redirecting to profile setup');
+          console.log('⚠️ User data not found at top-level collection - document does not exist');
+          console.log('Checking if we need to create a profile or redirect to setup');
+          
+          // Check if we should create a basic profile or redirect to setup
+          // For now, redirect to setup
           window.location.href = 'profile-setup.html';
         }
       } catch (error) {
         console.error("❌ Error loading user data:", error);
         nicknameElement.textContent = "Error Loading Profile";
         usernameElement.textContent = "@error";
+        profileBio.textContent = "Unable to load profile data. Please try again.";
         hideLoading();
+        
+        // Show error message but don't redirect - let user try again
+        setTimeout(() => {
+          alert("Error loading profile. Please check your connection and try again.");
+        }, 1000);
       }
     }
 
@@ -1605,7 +1620,7 @@
         // Show loading immediately (only for middle content)
         showLoading();
         
-        // Load profile data
+        // Load profile data from top-level collection
         await loadUserProfile(currentUserId);
         
         // Setup notifications after profile is loaded
