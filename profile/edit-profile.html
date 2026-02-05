@@ -1236,12 +1236,10 @@
       }
     }
 
-    // Get user data from Firestore
+    // UPDATED: Get user data from Firestore - now uses top-level users collection
     async function getUserData(userId) {
-      const appId = 'motion-flow-v1';
-      
-      // Always use the signup path
-      const userDocRef = doc(db, "artifacts", appId, "users", userId, "profile", "settings");
+      // UPDATED: Use top-level collection
+      const userDocRef = doc(db, "users", userId);
       
       try {
         const userDoc = await getDoc(userDocRef);
@@ -1316,7 +1314,7 @@
       updateSaveButtonState();
     }
 
-    // Check username availability in database
+    // UPDATED: Check username availability - now checks in top-level users collection
     async function checkUsernameAvailability(username) {
       if (!username || username === currentUserData?.username) {
         updateUsernameValidation(true, "Username is available");
@@ -1326,8 +1324,8 @@
       isCheckingUsername = true;
       
       try {
-        const appId = 'motion-flow-v1';
-        const usersRef = collection(db, "artifacts", appId, "users");
+        // UPDATED: Query the top-level users collection
+        const usersRef = collection(db, "users");
         const q = query(usersRef, where("username", "==", username));
         const querySnapshot = await getDocs(q);
         
@@ -1383,10 +1381,18 @@
             document.getElementById("instagram").value = currentUserData.social.instagram || "";
           }
           
-          // Set profile picture
-          if (currentUserData.profileImage || currentUserData.profilePicture) {
-            const profileImage = currentUserData.profileImage || currentUserData.profilePicture;
+          // Set profile picture - check multiple possible field names
+          const profileImage = currentUserData.profileImage || currentUserData.profilePicture || currentUserData.avatar || currentUserData.photoURL;
+          if (profileImage) {
             profilePicturePreview.innerHTML = `<img src="${profileImage}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${currentUserData.nickname || currentUserData.username || 'User'}&background=1a1a2e&color=fff&size=150'">`;
+          } else {
+            // Default avatar
+            const nameForAvatar = currentUserData.nickname || currentUserData.username || 'User';
+            profilePicturePreview.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--color-accent);">
+                <i class="fas fa-user" style="font-size: 4em;"></i>
+              </div>
+            `;
           }
           
           // Set interests
@@ -1399,11 +1405,16 @@
           if (currentUserData.privacy) {
             document.getElementById("profileVisibility").value = currentUserData.privacy.profileVisibility || "public";
             document.getElementById("showEmail").checked = currentUserData.privacy.showEmail || false;
+          } else {
+            // Default values
+            document.getElementById("profileVisibility").value = "public";
+            document.getElementById("showEmail").checked = false;
           }
           
           // Set active privacy option
+          const profileVisibilityValue = currentUserData.privacy?.profileVisibility || "public";
           document.querySelectorAll('.privacy-option').forEach(option => {
-            if (option.dataset.value === (currentUserData.privacy?.profileVisibility || "public")) {
+            if (option.dataset.value === profileVisibilityValue) {
               option.classList.add('selected');
             } else {
               option.classList.remove('selected');
@@ -1471,10 +1482,18 @@
       
       try {
         // Delete old profile picture if it exists
-        if (currentUserData?.profileImage) {
+        const oldProfileImage = currentUserData?.profileImage || currentUserData?.profilePicture;
+        if (oldProfileImage) {
           try {
-            const oldImageRef = ref(storage, currentUserData.profileImage);
-            await deleteObject(oldImageRef);
+            // Extract path from URL or use the URL itself
+            const oldImagePath = oldProfileImage.includes('firebasestorage.app') 
+              ? decodeURIComponent(oldProfileImage.split('/o/')[1]?.split('?')[0] || '')
+              : oldProfileImage;
+            
+            if (oldImagePath) {
+              const oldImageRef = ref(storage, oldImagePath);
+              await deleteObject(oldImageRef);
+            }
           } catch (error) {
             console.log("No old image to delete or error deleting:", error);
           }
@@ -1534,9 +1553,11 @@
       selectedInterests.forEach(interest => {
         const tag = document.createElement('div');
         tag.className = 'interest-tag';
+        // Escape special characters for onclick
+        const escapedInterest = interest.replace(/'/g, "\\'").replace(/"/g, '\\"');
         tag.innerHTML = `
           <span>${interest}</span>
-          <button class="remove-tag-btn" onclick="removeInterest('${interest}')">
+          <button class="remove-tag-btn" onclick="removeInterest('${escapedInterest}')">
             <i class="fas fa-times"></i>
           </button>
         `;
@@ -1637,7 +1658,7 @@
         
         try {
           // Upload profile picture if selected
-          let profileImageUrl = currentUserData?.profileImage || currentUserData?.profilePicture;
+          let profileImageUrl = currentUserData?.profileImage || currentUserData?.profilePicture || currentUserData?.avatar || currentUserData?.photoURL;
           if (profileImageFile) {
             try {
               profileImageUrl = await uploadProfilePicture(currentUserId);
@@ -1689,10 +1710,10 @@
             };
           }
           
-          // FIXED: Save to Firestore with merge: true
-          const appId = 'motion-flow-v1';
-          const userDocRef = doc(db, "artifacts", appId, "users", currentUserId, "profile", "settings");
+          // UPDATED: Save to Firestore in top-level users collection
+          const userDocRef = doc(db, "users", currentUserId);
           
+          // Use merge: true to update only the fields we're changing
           await setDoc(userDocRef, updateData, { merge: true });
           
           showMessage("Profile updated successfully!", 'success');
@@ -1732,13 +1753,7 @@
         currentUserId = user.uid;
         console.log('👤 User authenticated:', currentUserId);
         
-        // Check if user has completed profile setup
-        const userDataResult = await getUserData(currentUserId);
-        if (!userDataResult) {
-          window.location.href = 'profile-setup.html';
-          return;
-        }
-        
+        // Load user data
         await loadUserData();
         setupEventListeners();
       } else {
