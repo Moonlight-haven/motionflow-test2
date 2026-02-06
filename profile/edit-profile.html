@@ -1070,7 +1070,8 @@
       collection,
       query,
       where,
-      getDocs
+      getDocs,
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { 
       getStorage,
@@ -1140,6 +1141,7 @@
     let usernameCheckTimeout = null;
     let isUsernameAvailable = false;
     let isCheckingUsername = false;
+    let isSaving = false; // ADDED: Flag to prevent multiple saves
 
     // Sidebar functions
     function toggleSidebar() {
@@ -1189,6 +1191,7 @@
     function showMessage(text, type = 'success') {
       messageBox.textContent = text;
       messageBox.className = `message-box ${type}`;
+      messageBox.style.display = 'flex';
       
       if (type === 'success') {
         setTimeout(() => {
@@ -1236,9 +1239,8 @@
       }
     }
 
-    // UPDATED: Get user data from Firestore - now uses top-level users collection
+    // Get user data from Firestore
     async function getUserData(userId) {
-      // UPDATED: Use top-level collection
       const userDocRef = doc(db, "users", userId);
       
       try {
@@ -1254,7 +1256,7 @@
       return null;
     }
 
-    // Validate username with debounce
+    // Validate username with debounce - FIXED: Don't check availability for same username
     async function validateUsername(username) {
       if (!username || username.length < 3) {
         updateUsernameValidation(false, "Username must be at least 3 characters");
@@ -1273,7 +1275,7 @@
         return false;
       }
       
-      // If username hasn't changed, it's valid
+      // If username hasn't changed from current, it's valid
       if (currentUserData && username === currentUserData.username) {
         updateUsernameValidation(true, "Username is available");
         return true;
@@ -1314,17 +1316,23 @@
       updateSaveButtonState();
     }
 
-    // UPDATED: Check username availability - now checks in top-level users collection
+    // Check username availability in database
     async function checkUsernameAvailability(username) {
-      if (!username || username === currentUserData?.username) {
+      if (!username) {
+        updateUsernameValidation(false, "Username is required");
+        return false;
+      }
+      
+      // If it's the same as current username, it's available
+      if (currentUserData && username === currentUserData.username) {
         updateUsernameValidation(true, "Username is available");
         return true;
       }
       
       isCheckingUsername = true;
+      updateSaveButtonState();
       
       try {
-        // UPDATED: Query the top-level users collection
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("username", "==", username));
         const querySnapshot = await getDocs(q);
@@ -1338,11 +1346,13 @@
         }
         
         isCheckingUsername = false;
+        updateSaveButtonState();
         return isAvailable;
       } catch (error) {
         console.error("Error checking username:", error);
         updateUsernameValidation(false, "Error checking username availability");
         isCheckingUsername = false;
+        updateSaveButtonState();
         return false;
       }
     }
@@ -1356,7 +1366,8 @@
       const hasValidUsername = username.length >= 3 && isUsernameAvailable && !isCheckingUsername;
       const hasValidNickname = nickname.length > 0;
       
-      saveButton.disabled = !(hasValidUsername && hasValidNickname);
+      // Only disable if validation fails OR if we're currently saving
+      saveButton.disabled = !(hasValidUsername && hasValidNickname) || isSaving;
     }
 
     // Load user data
@@ -1381,10 +1392,10 @@
             document.getElementById("instagram").value = currentUserData.social.instagram || "";
           }
           
-          // Set profile picture - check multiple possible field names
+          // Set profile picture
           const profileImage = currentUserData.profileImage || currentUserData.profilePicture || currentUserData.avatar || currentUserData.photoURL;
           if (profileImage) {
-            profilePicturePreview.innerHTML = `<img src="${profileImage}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${currentUserData.nickname || currentUserData.username || 'User'}&background=1a1a2e&color=fff&size=150'">`;
+            profilePicturePreview.innerHTML = `<img src="${profileImage}" alt="Profile Picture" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.nickname || currentUserData.username || 'User')}&background=1a1a2e&color=fff&size=150'">`;
           } else {
             // Default avatar
             const nameForAvatar = currentUserData.nickname || currentUserData.username || 'User';
@@ -1500,7 +1511,9 @@
         }
         
         // Create a reference to the profile picture
-        const storageRef = ref(storage, `profile-pictures/${userId}/${Date.now()}_${profileImageFile.name}`);
+        const timestamp = Date.now();
+        const fileName = profileImageFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const storageRef = ref(storage, `profile-pictures/${userId}/${timestamp}_${fileName}`);
         
         // Upload the file
         await uploadBytes(storageRef, profileImageFile);
@@ -1557,7 +1570,7 @@
         const escapedInterest = interest.replace(/'/g, "\\'").replace(/"/g, '\\"');
         tag.innerHTML = `
           <span>${interest}</span>
-          <button class="remove-tag-btn" onclick="removeInterest('${escapedInterest}')">
+          <button class="remove-tag-btn" type="button" onclick="removeInterest('${escapedInterest}')">
             <i class="fas fa-times"></i>
           </button>
         `;
@@ -1606,7 +1619,7 @@
       
       addInterestBtn.addEventListener('click', addInterest);
       
-      // Username validation with debounce
+      // Username validation with debounce - FIXED: Better handling
       const usernameInput = document.getElementById("username");
       usernameInput.addEventListener('input', () => {
         const username = usernameInput.value.trim();
@@ -1616,18 +1629,39 @@
           clearTimeout(usernameCheckTimeout);
         }
         
+        // Show checking state immediately
+        if (username.length >= 3) {
+          isCheckingUsername = true;
+          updateUsernameValidation(false, "Checking username availability...");
+          updateSaveButtonState();
+        } else if (username.length === 0) {
+          updateUsernameValidation(false, "Username is required");
+          updateSaveButtonState();
+          return;
+        } else {
+          updateUsernameValidation(false, "Username must be at least 3 characters");
+          updateSaveButtonState();
+          return;
+        }
+        
         // Set new timeout for debounce
         usernameCheckTimeout = setTimeout(async () => {
           await validateUsername(username);
-        }, 500);
+        }, 800); // Increased debounce time
       });
       
       // Nickname input
       document.getElementById("nickname").addEventListener('input', updateSaveButtonState);
       
-      // Form submission
+      // Form submission - FIXED: Prevent multiple submissions
       editForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        
+        // Prevent multiple submissions
+        if (isSaving) {
+          console.log("Already saving, ignoring duplicate submission");
+          return;
+        }
         
         const fullName = document.getElementById("fullName").value.trim();
         const location = document.getElementById("location").value.trim();
@@ -1641,8 +1675,13 @@
         const showEmail = document.getElementById("showEmail").checked;
         
         // Final validation
-        if (!isUsernameAvailable || isCheckingUsername) {
+        if (isCheckingUsername) {
           showMessage("Please wait for username validation to complete", 'error');
+          return;
+        }
+        
+        if (!isUsernameAvailable) {
+          showMessage("Please fix the username validation errors", 'error');
           return;
         }
         
@@ -1650,6 +1689,9 @@
           showMessage("Username and nickname are required", 'error');
           return;
         }
+        
+        // Set saving flag
+        isSaving = true;
         
         // Show loading
         const originalButtonText = saveButton.innerHTML;
@@ -1662,10 +1704,10 @@
           if (profileImageFile) {
             try {
               profileImageUrl = await uploadProfilePicture(currentUserId);
-              showMessage("Profile picture uploaded successfully", 'success');
+              console.log("Profile picture uploaded:", profileImageUrl);
             } catch (error) {
               console.error("Failed to upload profile picture:", error);
-              showMessage("Profile picture upload failed, but other changes will be saved", 'error');
+              // Continue without profile picture
             }
           }
           
@@ -1695,7 +1737,7 @@
           }
           
           // Update username change timestamp if changed
-          if (username !== currentUserData.username && canChangeUsername) {
+          if (currentUserData && username !== currentUserData.username && canChangeUsername) {
             updateData.lastChanged = {
               ...(currentUserData.lastChanged || {}),
               username: new Date().toISOString()
@@ -1703,24 +1745,25 @@
           }
           
           // Update nickname change timestamp if changed
-          if (nickname !== currentUserData.nickname && canChangeNickname) {
+          if (currentUserData && nickname !== currentUserData.nickname && canChangeNickname) {
             updateData.lastChanged = {
               ...(updateData.lastChanged || currentUserData.lastChanged || {}),
               nickname: new Date().toISOString()
             };
           }
           
-          // UPDATED: Save to Firestore in top-level users collection
+          // Save to Firestore in top-level users collection
           const userDocRef = doc(db, "users", currentUserId);
           
-          // Use merge: true to update only the fields we're changing
-          await setDoc(userDocRef, updateData, { merge: true });
+          // Use updateDoc instead of setDoc for better error handling
+          await updateDoc(userDocRef, updateData);
           
           showMessage("Profile updated successfully!", 'success');
           
           // Reset button state
           saveButton.innerHTML = originalButtonText;
           saveButton.disabled = false;
+          isSaving = false;
           
           // Update current user data
           currentUserData = { ...currentUserData, ...updateData };
@@ -1736,10 +1779,13 @@
           // Reset button state
           saveButton.innerHTML = originalButtonText;
           saveButton.disabled = false;
+          isSaving = false;
           
           // Show specific error messages
           if (error.code === 'permission-denied') {
-            showMessage("Permission denied: You don't have permission to update this profile. Please contact support.", 'error');
+            showMessage("Permission denied: You don't have permission to update this profile.", 'error');
+          } else if (error.code === 'not-found') {
+            showMessage("Profile not found. Please contact support.", 'error');
           } else {
             showMessage("Error updating profile: " + error.message, 'error');
           }
