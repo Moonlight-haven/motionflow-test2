@@ -1,0 +1,4184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Home - Motion-Flow</title>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --color-dark: #0a0a12;
+      --color-bg: #0f0f1a;
+      --color-bg-light: #1a1a2e;
+      --color-primary: #00bcd4;
+      --color-accent: #00bcd4;
+      --color-accent-alt: #f97316;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-text: #e2e8f0;
+      --color-text-muted: #94a3b8;
+      --font-heading: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      
+      --bg-card: #1a1a2e;
+      --bg-input: #0f111a;
+      --border: rgba(0, 188, 212, 0.2);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --radius-sm: 12px;
+      --radius-lg: 20px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: var(--font-body);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--color-bg) 0%, #0a0b14 100%);
+      color: var(--color-text);
+      overflow-x: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      touch-action: pan-y;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 188, 212, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* --- TOP NAVIGATION --- */
+    .top-nav {
+      height: 70px;
+      background: rgba(10, 10, 18, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+      touch-action: pan-y;
+      max-width: 100%;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .nav-left { 
+      display: flex; 
+      align-items: center; 
+      gap: 18px; 
+    }
+    
+    .hamburger {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 188, 212, 0.1);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: var(--color-primary);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamburger:hover {
+      background: rgba(0, 188, 212, 0.2);
+      transform: rotate(90deg);
+    }
+
+    .brand {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      display: none;
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    .sidebar-overlay.active { 
+      display: block; 
+      opacity: 1;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: -320px;
+      top: 0;
+      width: 300px;
+      height: 100%;
+      background: rgba(10, 10, 18, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 200;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      touch-action: pan-y;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-user-info h3 {
+      font-size: 1.1rem;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-username {
+      color: var(--color-primary);
+      font-size: 0.75rem;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .sidebar-menu { 
+      list-style: none; 
+    }
+    
+    .sidebar-menu li {
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.95rem;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    
+    .sidebar-menu li a {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+    }
+    
+    .sidebar-menu li:hover { 
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      transform: translateX(5px);
+    }
+
+    .sidebar-menu li i {
+      width: 24px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+      opacity: 0.3;
+    }
+
+    /* --- ADMIN MODALS - WIDER AND IMPROVED --- */
+    .admin-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .admin-modal-overlay.active {
+      display: flex;
+    }
+
+    .admin-modal-content {
+      background: var(--color-bg-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 800px; /* WIDER MODAL */
+      width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 2px solid var(--color-primary);
+      box-shadow: 0 10px 40px rgba(0, 188, 212, 0.3);
+      animation: modalSlideIn 0.3s ease;
+      position: relative;
+    }
+
+    /* Back to Home Button - IMPROVED STYLING */
+    .back-to-home-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 3001;
+      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+    }
+
+    .back-to-home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 188, 212, 0.4);
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .admin-form-group {
+      margin-bottom: 20px;
+    }
+
+    .admin-form-label {
+      display: block;
+      color: var(--color-text);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .admin-form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .admin-form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+    }
+
+    .admin-form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* Logout Dialog Styles - FROM PROFILE.HTML */
+    .logout-dialog {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 26, 0.95);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .logout-dialog.active {
+      display: flex;
+    }
+
+    .logout-content {
+      background: rgba(15, 17, 30, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 400px;
+      width: 90%;
+      border: 1px solid rgba(0, 188, 212, 0.2);
+      box-shadow: 0 0 40px rgba(0, 188, 212, 0.3);
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .logout-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .logout-confirm-btn, .logout-cancel-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 100px;
+    }
+
+    .logout-confirm-btn {
+      background: linear-gradient(135deg, #ff4757, #ff3742);
+      color: #ffffff;
+    }
+
+    .logout-confirm-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+    }
+
+    .logout-cancel-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(0, 188, 212, 0.2);
+    }
+
+    .logout-cancel-btn:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-accent);
+    }
+
+    /* Image Size Selector */
+    .image-size-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .image-size-option {
+      padding: 10px;
+      background: rgba(0, 188, 212, 0.1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+
+    .image-size-option:hover {
+      background: rgba(0, 188, 212, 0.2);
+    }
+
+    .image-size-option.selected {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .image-urls-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .add-image-btn {
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+
+    .add-image-btn:hover {
+      background: rgba(0, 188, 212, 0.2);
+    }
+
+    .price-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .price-container.hidden {
+      display: none;
+    }
+
+    .admin-form-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .admin-form-submit {
+      flex: 1;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-alt));
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .admin-form-submit.loading {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .admin-form-submit.loading:after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin: -10px 0 0 -10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .admin-form-cancel {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .admin-form-cancel:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-primary);
+    }
+
+    /* Admin Products Management Section */
+    .admin-products-section {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid var(--border);
+    }
+
+    .admin-products-section h3 {
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .admin-products-list {
+      max-height: 300px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 15px;
+    }
+
+    .admin-product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      transition: var(--transition);
+    }
+
+    .admin-product-item:hover {
+      background: rgba(0, 188, 212, 0.1);
+    }
+
+    .admin-product-info {
+      flex: 1;
+    }
+
+    .admin-product-name {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+
+    .admin-product-id {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    .admin-product-details {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 5px;
+    }
+
+    .admin-product-type {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .admin-product-code {
+      font-size: 0.75rem;
+      color: var(--color-success);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition);
+      padding: 4px 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 6px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      user-select: none;
+    }
+
+    .admin-product-code:hover {
+      color: #0d9488;
+      background: rgba(16, 185, 129, 0.2);
+      transform: scale(1.05);
+    }
+
+    .admin-product-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .admin-product-edit,
+    .admin-product-delete,
+    .admin-product-generate-key {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .admin-product-edit {
+      background: rgba(0, 188, 212, 0.2);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+
+    .admin-product-edit:hover {
+      background: rgba(0, 188, 212, 0.3);
+    }
+
+    .admin-product-delete {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--color-error);
+      border: 1px solid var(--color-error);
+    }
+
+    .admin-product-delete:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .admin-product-generate-key {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--color-warning);
+      border: 1px solid var(--color-warning);
+    }
+
+    .admin-product-generate-key:hover {
+      background: rgba(245, 158, 11, 0.3);
+    }
+
+    /* Upload Status Indicator */
+    .upload-status {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin: 20px 0;
+      font-weight: 600;
+    }
+
+    .upload-status.success {
+      display: flex;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+
+    .upload-status.error {
+      display: flex;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-error);
+      border: 1px solid var(--color-error);
+    }
+
+    .upload-status.loading {
+      display: flex;
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+
+    /* Success Popup */
+    .success-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-bg-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      border: 2px solid var(--color-success);
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+      z-index: 5000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    .success-popup.active {
+      display: flex;
+    }
+
+    .success-icon {
+      font-size: 3.5em;
+      color: var(--color-success);
+      margin-bottom: 15px;
+    }
+
+    .success-message {
+      color: var(--color-text);
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+
+    /* --- Main Content --- */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 90px;
+      padding-bottom: 100px;
+    }
+
+    .market-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 0 10px;
+    }
+
+    .market-header h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(1.8em, 5vw, 2.8em);
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+      line-height: 1.2;
+    }
+
+    .market-header p {
+      color: var(--color-text-muted);
+      font-size: clamp(0.9em, 3vw, 1.1em);
+      opacity: 0.8;
+      line-height: 1.5;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Search and Filter */
+    .search-filter-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+      .search-filter-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .search-container, .filter-container {
+      background: var(--color-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(0, 188, 212, 0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .search-container:hover, .filter-container:hover {
+      border-color: rgba(0, 188, 212, 0.2);
+      box-shadow: 0 10px 40px rgba(0, 188, 212, 0.2);
+    }
+
+    .filter-label {
+      display: block;
+      color: var(--color-text);
+      font-weight: 600;
+      margin-bottom: 15px;
+      font-size: 1em;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--color-text);
+      font-size: 1em;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+    }
+
+    .search-btn {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .search-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .custom-select-filter {
+      position: relative;
+      z-index: 101;
+    }
+
+    .select-trigger-filter {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--color-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .select-trigger-filter:hover {
+      border-color: var(--color-accent);
+    }
+
+    .select-dropdown-filter {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--color-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-top: 8px;
+      display: none;
+      z-index: 105;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .select-dropdown-filter.active {
+      display: block;
+    }
+
+    .select-option-filter {
+      padding: 14px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+      color: var(--color-text);
+    }
+
+    .select-option-filter:hover {
+      background: rgba(0, 188, 212, 0.1);
+      color: var(--color-accent);
+    }
+
+    .select-option-filter:last-child {
+      border-bottom: none;
+    }
+
+    /* Pinterest-Style Masonry Layout - UPDATED */
+    .market-container {
+      column-count: 3;
+      column-gap: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .market-container {
+        column-count: 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .market-container {
+        column-count: 1;
+      }
+    }
+
+    .product-card {
+      background: var(--color-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      break-inside: avoid;
+      margin-bottom: 25px;
+      page-break-inside: avoid;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 188, 212, 0.3);
+      box-shadow: 0 15px 40px rgba(0, 188, 212, 0.2);
+    }
+
+    .product-card.paid {
+      border: 2px solid var(--color-warning);
+      position: relative;
+    }
+
+    .product-card.paid::before {
+      content: 'PAID';
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, var(--color-warning), #d97706);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7em;
+      font-weight: 700;
+      z-index: 3;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Image Carousel - UPDATED FOR NATURAL SCALING */
+    .product-img-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+      background: var(--color-dark);
+      cursor: pointer;
+      /* Removed fixed aspect-ratio for natural scaling */
+    }
+
+    .product-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      transition: transform 0.5s ease;
+    }
+
+    .product-card:hover .product-img {
+      transform: scale(1.05);
+    }
+
+    /* Carousel Navigation - FIXED: Always visible */
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 2;
+      opacity: 1; /* Always visible */
+      transition: opacity 0.3s ease;
+    }
+
+    .carousel-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      font-size: 1.1rem;
+      z-index: 3;
+    }
+
+    .carousel-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: scale(1.2);
+    }
+
+    .carousel-dots {
+      position: absolute;
+      bottom: 15px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 2;
+    }
+
+    .carousel-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .carousel-dot.active {
+      background: var(--color-primary);
+      transform: scale(1.3);
+    }
+
+    .video-preview-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      z-index: 3;
+      backdrop-filter: blur(10px);
+    }
+
+    .video-preview-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: translateY(-2px);
+    }
+
+    /* Product Info - UPDATED WITH ADMIN BADGE */
+    .product-info {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .product-title h3 {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+
+    /* Price Display - UPDATED */
+    .price-display {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .current-price {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.95em;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .current-price.paid {
+      background: linear-gradient(135deg, var(--color-warning), #d97706);
+    }
+
+    .original-price {
+      font-size: 0.75em;
+      color: var(--color-text-muted);
+      text-decoration: line-through;
+      opacity: 0.8;
+    }
+
+    .product-id {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-size: 0.85em;
+      color: var(--color-text-muted);
+    }
+
+    .product-id-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .copy-icon {
+      cursor: pointer;
+      color: var(--color-accent);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .copy-icon:hover {
+      color: var(--color-accent-alt);
+      transform: scale(1.1);
+    }
+
+    .share-icon {
+      cursor: pointer;
+      color: var(--color-success);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .share-icon:hover {
+      color: #0d9488;
+      transform: scale(1.1);
+    }
+
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .user-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .username {
+      font-size: 0.95em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .admin-name {
+      color: var(--color-warning);
+      font-weight: 600;
+    }
+
+    /* Admin Badge - Updated styling */
+    .admin-badge {
+      background: linear-gradient(135deg, var(--color-warning), #d97706);
+      color: white;
+      font-size: 0.65em;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 5px;
+    }
+
+    .time {
+      font-size: 0.85em;
+      color: var(--color-text-muted);
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .purchase-btn, .info-btn, .download-btn, .activate-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .purchase-btn {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      color: white;
+    }
+
+    .purchase-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    .purchase-btn.paid {
+      background: linear-gradient(135deg, var(--color-warning), #d97706);
+    }
+
+    .info-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .info-btn:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, var(--color-success), #059669);
+      color: white;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .activate-btn {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+    }
+
+    .activate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    /* --- BOTTOM NAVIGATION --- */
+    .bottom-nav {
+      height: 60px;
+      background: rgba(10, 10, 18, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 188, 212, 0.3);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      overflow: hidden;
+      max-width: 100%;
+      width: 100%;
+      box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      gap: 4px;
+      text-decoration: none;
+      padding: 8px;
+      border-radius: 8px;
+      transition: var(--transition);
+      position: relative;
+      min-width: 60px;
+      flex: 1;
+      text-align: center;
+      max-width: 25%;
+    }
+
+    .nav-item.active {
+      color: var(--color-primary);
+    }
+
+    .nav-item.active i {
+      color: var(--color-primary);
+      text-shadow: 0 0 15px var(--color-primary);
+      transform: translateY(-2px);
+    }
+
+    .nav-item:hover:not(.active) {
+      color: var(--color-text);
+    }
+
+    .nav-item i {
+      font-size: 1.3rem;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    /* Smart Notification Dot - FROM PROFILE.HTML */
+    .notification-dot {
+      position: absolute;
+      top: 0;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      display: none;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulse-red 1.5s infinite;
+      z-index: 10;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    .notification-dot.active {
+      display: block;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 17, 30, 0.95);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 188, 212, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      z-index: 2001;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideUp 0.3s ease;
+      max-width: 90%;
+      overflow-x: hidden;
+    }
+
+    .toast.show {
+      display: flex;
+    }
+
+    .toast.success {
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .toast.error {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Loading Animation - FIXED FOR PC SIZE */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 20px;
+      text-align: center;
+      width: 100%;
+      min-height: 400px;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(0, 188, 212, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--color-accent);
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      color: var(--color-text-muted);
+      font-size: 1.1em;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Empty State - UPDATED MESSAGE */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--color-text-muted);
+      break-inside: avoid;
+      width: 100%;
+    }
+
+    .empty-icon {
+      font-size: 4em;
+      color: rgba(0, 188, 212, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: var(--color-text);
+    }
+
+    .empty-state p {
+      font-size: 1.1em;
+      opacity: 0.8;
+    }
+
+    /* Fullscreen Image Viewer - UPDATED FOR SWIPE */
+    .image-viewer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .image-viewer-overlay.active {
+      display: flex;
+    }
+
+    .image-viewer-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+      text-align: center;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .image-viewer-img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Image Viewer Navigation - FIXED: Always visible */
+    .image-viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 2;
+      opacity: 1; /* Always visible */
+    }
+
+    .image-viewer-btn {
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      font-size: 1.2rem;
+    }
+
+    .image-viewer-btn:hover {
+      background: rgba(0, 188, 212, 0.9);
+      transform: scale(1.2);
+    }
+
+    .image-viewer-close {
+      position: absolute;
+      top: -50px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .image-viewer-close:hover {
+      background: rgba(239, 68, 68, 0.9);
+      transform: scale(1.2);
+    }
+
+    .image-viewer-dots {
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .image-viewer-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .image-viewer-dot.active {
+      background: var(--color-primary);
+      transform: scale(1.3);
+    }
+
+    /* Info Dialog Styles */
+    .info-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .info-dialog.active {
+      display: flex;
+    }
+
+    .info-content {
+      background: var(--color-bg-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 2px solid var(--color-primary);
+      box-shadow: 0 10px 40px rgba(0, 188, 212, 0.3);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    /* Delete Confirmation Modal */
+    .delete-confirmation {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .delete-icon {
+      font-size: 4em;
+      color: var(--color-error);
+      margin-bottom: 20px;
+    }
+
+    .delete-title {
+      color: var(--color-error);
+      font-size: 1.8em;
+      margin-bottom: 15px;
+    }
+
+    .delete-message {
+      color: var(--color-text);
+      margin-bottom: 25px;
+      font-size: 1.1em;
+      line-height: 1.6;
+    }
+
+    .product-to-delete {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .product-to-delete h4 {
+      color: var(--color-error);
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+
+    /* Activation Page Styles */
+    .activation-page {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .activation-icon {
+      font-size: 4em;
+      color: var(--color-warning);
+      margin-bottom: 20px;
+    }
+
+    .activation-title {
+      color: var(--color-warning);
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .activation-description {
+      color: var(--color-text);
+      margin-bottom: 30px;
+      font-size: 1.1em;
+      line-height: 1.6;
+    }
+
+    .activation-instructions {
+      background: rgba(249, 115, 22, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 25px 0;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      text-align: left;
+    }
+
+    .activation-instructions h4 {
+      color: var(--color-warning);
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+
+    .activation-instructions ol {
+      margin-left: 20px;
+      color: var(--color-text);
+    }
+
+    .activation-instructions li {
+      margin-bottom: 10px;
+    }
+
+    .activation-input-group {
+      margin: 30px 0;
+    }
+
+    .activation-input {
+      width: 100%;
+      padding: 15px;
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-size: 1.1em;
+      text-align: center;
+      letter-spacing: 2px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .activation-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+    }
+
+    .activation-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .telegram-btn {
+      background: linear-gradient(135deg, #0088cc, #00a2e8);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .telegram-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text);
+      border: 1px solid var(--border);
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .back-btn:hover {
+      background: rgba(0, 188, 212, 0.1);
+      border-color: var(--color-primary);
+    }
+
+    /* Download Page Styles */
+    .download-page {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .download-success-icon {
+      font-size: 3em;
+      color: var(--color-success);
+      margin-bottom: 15px;
+    }
+
+    .download-link {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-alt));
+      color: white;
+      padding: 15px 30px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 10px 0;
+      transition: var(--transition);
+    }
+
+    .download-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 188, 212, 0.3);
+    }
+
+    /* Admin Settings Section */
+    .admin-settings-section {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid var(--border);
+    }
+
+    .admin-settings-section h3 {
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    /* Video Preview Modal */
+    .video-modal video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .top-nav {
+        height: 65px;
+        padding: 0 1rem;
+      }
+
+      .hamburger {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
+
+      .brand {
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        padding: 70px 15px 100px;
+      }
+      
+      .search-container, .filter-container {
+        padding: 20px;
+      }
+      
+      .market-container {
+        column-count: 1;
+        gap: 20px;
+      }
+      
+      .buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      .download-link {
+        padding: 12px 20px;
+        font-size: 1.1em;
+      }
+
+      .sidebar {
+        width: 280px;
+      }
+
+      .price-container {
+        grid-template-columns: 1fr;
+      }
+
+      .back-to-home-btn {
+        top: 10px;
+        right: 10px;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+      }
+
+      .admin-modal-content {
+        max-width: 95%;
+        padding: 20px;
+      }
+
+      .image-size-selector {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .top-nav {
+        height: 60px;
+        padding: 0 0.8rem;
+      }
+
+      .hamburger {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+      }
+
+      .brand {
+        font-size: 1rem;
+      }
+
+      .main-content {
+        padding: 65px 10px 90px;
+      }
+      
+      .market-container {
+        column-count: 1;
+      }
+
+      .search-input {
+        padding: 12px 14px;
+        font-size: 0.9em;
+      }
+
+      .search-btn {
+        padding: 12px 18px;
+        font-size: 0.9em;
+      }
+
+      .product-info {
+        padding: 15px;
+      }
+
+      .purchase-btn, .info-btn, .download-btn, .activate-btn {
+        padding: 10px;
+        font-size: 0.9em;
+      }
+
+      .bottom-nav {
+        height: 55px;
+      }
+
+      .nav-item {
+        padding: 6px;
+        font-size: 0.65rem;
+      }
+
+      .nav-item i {
+        font-size: 1.2rem;
+      }
+
+      .back-to-home-btn {
+        top: 5px;
+        right: 5px;
+        padding: 8px 12px;
+        font-size: 0.7rem;
+      }
+
+      .admin-product-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .admin-product-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .image-size-selector {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .market-container {
+        column-count: 1;
+        gap: 15px;
+      }
+
+      .product-id {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .product-id-left {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .search-box {
+        flex-direction: column;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+
+      .search-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Success Popup -->
+  <div class="success-popup" id="successPopup">
+    <div class="success-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h2 class="success-message">Product Uploaded Successfully!</h2>
+    <button class="admin-form-submit" onclick="closeSuccessPopup()">
+      <i class="fas fa-check"></i> OK
+    </button>
+  </div>
+
+  <!-- Top Navigation - REMOVED ADMIN BADGE FROM HERE -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <div class="hamburger" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></div>
+      <a href="#" class="brand" id="brandLogo">MOTION-FLOW</a>
+    </div>
+    <!-- Admin badge removed from homepage -->
+  </nav>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  
+  <!-- Sidebar -->
+   <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-user-info">
+        <h3 style="font-size: 1.5rem; color: var(--color-primary); text-align: center; width: 100%;">
+          MOTION FLOW
+        </h3>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li><a href="homepage.html" class="active"><i class="fa-solid fa-home"></i> Home</a></li>
+      <li><a href="apk/apk.html"><i class="fa-solid fa-download"></i> APK Share</a></li>
+      <li><a href="Users/users.html"><i class="fa-solid fa-users"></i> Users</a></li>
+      <li><a href="Chats/chats.html"><i class="fa-solid fa-comments"></i> Messages</a></li>
+      <li id="admin-section" style="display: none;">
+        <a href="#" id="admin-upload-btn"><i class="fa-solid fa-upload"></i> Upload Product</a>
+      </li>
+      <li><a href="Settings/settings.html"><i class="fa-solid fa-cog"></i> Settings</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+
+    <ul class="sidebar-menu">
+      <li onclick="showLogoutDialog()" style="color: #ef4444; cursor: pointer;"><i class="fa-solid fa-right-from-bracket"></i> Logout</li>
+    </ul>
+  </div>
+
+  <!-- Image Viewer Modal -->
+  <div class="image-viewer-overlay" id="imageViewer">
+    <div class="image-viewer-content">
+      <button class="image-viewer-close" onclick="closeImageViewer()">
+        <i class="fas fa-times"></i>
+      </button>
+      <img class="image-viewer-img" id="viewerImage" src="" alt="Fullscreen view">
+      <div class="image-viewer-nav">
+        <button class="image-viewer-btn" onclick="viewerPrevImage()">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="image-viewer-btn" onclick="viewerNextImage()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      <div class="image-viewer-dots" id="viewerDots">
+        <!-- Dots will be added dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="admin-modal-overlay" id="adminLoginModal">
+    <div class="admin-modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--color-primary); text-align: center;">
+        <i class="fa-solid fa-lock"></i> Admin Login
+      </h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-form-label">Email</label>
+        <input type="email" id="adminEmail" class="admin-form-input" placeholder="motionflow.admins@gmail.com">
+      </div>
+      
+      <div class="admin-form-group">
+        <label class="admin-form-label">Password</label>
+        <input type="password" id="adminPassword" class="admin-form-input" placeholder="MOTION-FLOW-ADMIN">
+      </div>
+      
+      <div class="admin-form-group" id="twoFactorSection" style="display: none;">
+        <label class="admin-form-label">2FA Access Code</label>
+        <input type="text" id="admin2FACode" class="admin-form-input" placeholder="MF-ADMIN-2026">
+        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+          Check Firebase path: admin/accessCode
+        </p>
+      </div>
+      
+      <div class="admin-form-buttons">
+        <button class="admin-form-submit" id="adminLoginSubmit">Login</button>
+        <button class="admin-form-cancel" onclick="closeAdminModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Upload Modal - WIDER WITH PRODUCT MANAGEMENT -->
+  <div class="admin-modal-overlay" id="adminUploadModal">
+    <!-- Back to Home Button -->
+    <button class="back-to-home-btn" onclick="closeUploadModal()">
+      <i class="fa-solid fa-arrow-left"></i> Back to Home
+    </button>
+    
+    <div class="admin-modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--color-primary); text-align: center;" id="uploadModalTitle">
+        <i class="fa-solid fa-plus"></i> Add New Product
+      </h2>
+      
+      <!-- Upload Status Indicator -->
+      <div class="upload-status" id="uploadStatus">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span id="uploadStatusText">Uploading product...</span>
+      </div>
+      
+      <form id="productUploadForm">
+        <div class="admin-form-group">
+          <label class="admin-form-label">Admin Name *</label>
+          <input type="text" id="adminName" class="admin-form-input" placeholder="Admin Moonlight" required>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+            This name will be displayed as the uploader
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Product Name *</label>
+          <input type="text" id="productName" class="admin-form-input" required>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Description *</label>
+          <textarea id="productDescription" class="admin-form-input admin-form-textarea" required></textarea>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Category *</label>
+          <select id="productCategory" class="admin-form-input" required>
+            <option value="">Select Category</option>
+            <option value="CC">Color Correction</option>
+            <option value="Animation">Animation</option>
+            <option value="Presets">Presets</option>
+            <option value="Plugins">Plugins</option>
+            <option value="Templates">Templates</option>
+            <option value="Tutorials">Tutorials</option>
+            <option value="EditingPacks">Editing Packs</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Product Type *</label>
+          <select id="productType" class="admin-form-input" required>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-group price-container" id="priceFields" style="display: none;">
+          <div>
+            <label class="admin-form-label">Original Price</label>
+            <input type="text" id="originalPrice" class="admin-form-input" placeholder="$99.99">
+          </div>
+          <div>
+            <label class="admin-form-label">Current Price *</label>
+            <input type="text" id="currentPrice" class="admin-form-input" placeholder="$49.99" required>
+          </div>
+        </div>
+        
+        <!-- Admin Settings Section -->
+        <div class="admin-settings-section" id="adminSettingsSection">
+          <h3>Admin Settings</h3>
+          
+          <div class="admin-form-group">
+            <label class="admin-form-label">Telegram Link for Paid Products</label>
+            <input type="url" id="adminTelegramLink" class="admin-form-input" placeholder="https://t.me/eclipsia_techs">
+            <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+              This link will be shown to users when they click "Unlock" on paid products
+            </p>
+          </div>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Image Aspect Ratio *</label>
+          <div class="image-size-selector">
+            <div class="image-size-option selected" data-ratio="16:9">16:9 (Default)</div>
+            <div class="image-size-option" data-ratio="1:1">1:1 (Square)</div>
+            <div class="image-size-option" data-ratio="4:3">4:3 (Classic)</div>
+          </div>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Image URLs (Catbox.moe links, max 5) *</label>
+          <div class="image-urls-container" id="imageUrlsContainer">
+            <input type="url" class="admin-form-input image-url-input" placeholder="https://files.catbox.moe/example.jpg" required>
+          </div>
+          <button type="button" class="add-image-btn" onclick="addImageUrlField()">
+            <i class="fa-solid fa-plus"></i> Add Another Image URL
+          </button>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Video Preview URL (Optional)</label>
+          <input type="url" id="videoUrl" class="admin-form-input" placeholder="https://files.catbox.moe/example.mp4">
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 5px;">
+            Videos will play without mute by default
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Download Link *</label>
+          <input type="url" id="downloadLink" class="admin-form-input" placeholder="https://drive.google.com/file/..." required>
+        </div>
+        
+        <div class="admin-form-group">
+          <label class="admin-form-label">Usage Instructions</label>
+          <textarea id="usageInstructions" class="admin-form-input admin-form-textarea" placeholder="How to use this product..."></textarea>
+        </div>
+        
+        <div class="admin-form-buttons">
+          <button type="submit" class="admin-form-submit" id="uploadSubmitBtn">
+            <i class="fas fa-upload"></i> Upload Product
+          </button>
+          <button type="button" class="admin-form-cancel" onclick="closeUploadModal()">Cancel</button>
+        </div>
+      </form>
+
+      <!-- Admin Products Management Section -->
+      <div class="admin-products-section" id="adminProductsSection" style="display: none;">
+        <h3>Manage Products</h3>
+        <div class="admin-products-list" id="adminProductsList">
+          <!-- Products will be loaded here -->
+          <div style="text-align: center; color: var(--color-text-muted); padding: 20px;">
+            Loading products...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+    <div class="market-header">
+      <h1>Motion-Flow Creative Market</h1>
+      <p>Discover amazing After Effects projects, templates, and tools from our creative community</p>
+    </div>
+    
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section">
+      <div class="search-container">
+        <label class="filter-label">Search Products</label>
+        <div class="search-box">
+          <input type="text" class="search-input" id="searchInput" placeholder="Search by name, description, or creator...">
+          <button class="search-btn" id="searchBtn">Search</button>
+        </div>
+      </div>
+      
+      <div class="filter-container">
+        <label class="filter-label">Filter by Category</label>
+        <div class="custom-select-filter">
+          <div class="select-trigger-filter" id="categoryTrigger">
+            <span class="placeholder">All Categories</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="select-dropdown-filter" id="categoryDropdown">
+            <div class="select-option-filter" data-value="all">
+              All Categories
+            </div>
+            <div class="select-option-filter" data-value="CC">
+              Color Correction
+            </div>
+            <div class="select-option-filter" data-value="Animation">
+              Animation
+            </div>
+            <div class="select-option-filter" data-value="Presets">
+              Presets
+            </div>
+            <div class="select-option-filter" data-value="Plugins">
+              Plugins
+            </div>
+            <div class="select-option-filter" data-value="Templates">
+              Templates
+            </div>
+            <div class="select-option-filter" data-value="Tutorials">
+              Tutorials
+            </div>
+            <div class="select-option-filter" data-value="EditingPacks">
+              Editing Packs
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Market Grid - Masonry Layout -->
+    <div class="market-container" id="marketContainer">
+      <!-- Products will be loaded from Firebase -->
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading products...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="homepage.html" class="nav-item active">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    
+    <a href="updates/updates.html" class="nav-item">
+      <i class="fa-solid fa-bell"></i>
+      <span>Updates</span>
+      <div class="notification-dot" id="updates-notification"></div>
+    </a>
+    
+    <a href="Live_Chat/live.html" class="nav-item">
+      <i class="fa-solid fa-comments"></i>
+      <span>Live Chat</span>
+      <div class="notification-dot" id="livechat-notification"></div>
+    </a>
+    
+    <a href="profile/profile.html" class="nav-item">
+      <i class="fa-solid fa-user"></i>
+      <span>profile</span>
+    </a>
+  </nav>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle" id="toastIcon"></i>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <!-- Info Dialog -->
+  <div class="info-dialog" id="infoDialog">
+    <div class="info-content" id="infoContent">
+      <!-- Info content will be loaded here -->
+    </div>
+  </div>
+
+  <!-- Activation Dialog -->
+  <div class="admin-modal-overlay" id="activationModal">
+    <div class="admin-modal-content" id="activationContent">
+      <!-- Activation content will be loaded here -->
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div class="admin-modal-overlay" id="deleteConfirmationModal">
+    <div class="admin-modal-content" id="deleteConfirmationContent">
+      <!-- Delete confirmation content will be loaded here -->
+    </div>
+  </div>
+
+  <!-- Logout Dialog - ADDED FROM PROFILE.HTML -->
+  <div class="logout-dialog" id="logoutDialog">
+    <div class="logout-content">
+      <h2>Logout Confirmation</h2>
+      <p>Are you sure you want to logout of your account?</p>
+      <div class="logout-buttons">
+        <button class="logout-confirm-btn" id="logoutConfirm">Yes, Logout</button>
+        <button class="logout-cancel-btn" id="logoutCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { ref, set, getDatabase, push, onValue, get, update, remove, child } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { onAuthStateChanged, getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy5uQGcg1cALqFSa1xAQOL6lX8Gz5nFNU",
+      authDomain: "motion-flow-47450.firebasestorage.app",
+      databaseURL: "https://motion-flow-47450-default-rtdb.firebaseio.com",
+      projectId: "motion-flow-47450",
+      storageBucket: "motion-flow-47450.firebasestorage.app",
+      messagingSenderId: "686875529848",
+      appId: "1:686875529848:web:48edf5164aaaf938cdd38d",
+      measurementId: "G-K46N8C1HFQ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase();
+
+    // DOM Elements
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const brandLogo = document.getElementById('brandLogo');
+    const marketContainer = document.getElementById("marketContainer");
+    const categoryTrigger = document.getElementById('categoryTrigger');
+    const categoryDropdown = document.getElementById('categoryDropdown');
+    const categoryOptions = document.querySelectorAll('.select-option-filter');
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const adminUploadModal = document.getElementById('adminUploadModal');
+    const adminEmail = document.getElementById('adminEmail');
+    const adminPassword = document.getElementById('adminPassword');
+    const admin2FACode = document.getElementById('admin2FACode');
+    const twoFactorSection = document.getElementById('twoFactorSection');
+    const adminLoginSubmit = document.getElementById('adminLoginSubmit');
+    const productUploadForm = document.getElementById('productUploadForm');
+    const productType = document.getElementById('productType');
+    const priceFields = document.getElementById('priceFields');
+    const imageUrlsContainer = document.getElementById('imageUrlsContainer');
+    const adminSection = document.getElementById('admin-section');
+    const adminUploadBtn = document.getElementById('admin-upload-btn');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    const uploadSubmitBtn = document.getElementById('uploadSubmitBtn');
+    const adminProductsSection = document.getElementById('adminProductsSection');
+    const adminProductsList = document.getElementById('adminProductsList');
+    const imageViewer = document.getElementById('imageViewer');
+    const viewerImage = document.getElementById('viewerImage');
+    const viewerDots = document.getElementById('viewerDots');
+    const adminTelegramLinkInput = document.getElementById('adminTelegramLink');
+    const activationModal = document.getElementById('activationModal');
+    const activationContent = document.getElementById('activationContent');
+    const deleteConfirmationModal = document.getElementById('deleteConfirmationModal');
+    const deleteConfirmationContent = document.getElementById('deleteConfirmationContent');
+    const successPopup = document.getElementById('successPopup');
+    const uploadModalTitle = document.getElementById('uploadModalTitle');
+    
+    // NEW: Logout dialog elements
+    const logoutDialog = document.getElementById('logoutDialog');
+    const logoutConfirm = document.getElementById('logoutConfirm');
+    const logoutCancel = document.getElementById('logoutCancel');
+    
+    // NEW: Notification elements
+    const liveChatNotification = document.getElementById('livechat-notification');
+    const updatesNotification = document.getElementById('updates-notification');
+
+    // Global State
+    let currentUserId = null;
+    let currentUserData = null;
+    let allToolsData = [];
+    let sidebarOpen = false;
+    let currentFilterCategory = 'all';
+    let currentSearchQuery = '';
+    let isAdmin = false;
+    let adminClickCount = 0;
+    let adminClickTimer = null;
+    let imageUrlsCount = 1;
+    let adminProducts = [];
+    let imageAspectRatio = '16:9';
+    let adminTelegramLink = 'https://t.me/eclipsia_techs';
+    let currentEditProductId = null; // Track which product is being edited
+    
+    // Image Viewer State
+    let viewerImages = [];
+    let viewerCurrentIndex = 0;
+    let viewerCurrentProduct = null;
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // NEW: Notification state
+    let lastReadTimestamp = 0;
+    let unreadCount = 0;
+    let liveChatListener = null;
+
+    // Hardcoded Admin Credentials
+    const ADMIN_EMAIL = "motionflow.admins@gmail.com";
+    const ADMIN_PASSWORD = "MOTION-FLOW-ADMIN";
+
+    // FIX 1: Enhanced Download Helper Function with Product Name
+    window.triggerDirectDownload = (url, productName) => {
+      try {
+        console.log('Starting download:', { url, productName });
+        
+        if (!url || url === '#') {
+          showToast('Download link not available', 'error');
+          return;
+        }
+        
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Sanitize the product name for filename
+        const safeName = productName
+          .replace(/[^a-z0-9\s-]/gi, '_')  // Replace special characters with underscore
+          .replace(/\s+/g, '_')           // Replace spaces with underscore
+          .toLowerCase()
+          .substring(0, 50);              // Limit length
+        
+        // Add .zip extension
+        const fileName = `${safeName}.zip`;
+        
+        link.download = fileName;
+        link.target = '_blank';
+        
+        console.log('Downloading with filename:', fileName);
+        
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 100);
+        
+        showToast(`Downloading ${productName} as ${fileName}`, 'success');
+        return fileName;
+        
+      } catch (error) {
+        console.error('Download error:', error);
+        // Fallback: open in new tab
+        window.open(url, '_blank');
+        showToast(`Downloading ${productName}`, 'success');
+        return null;
+      }
+    };
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+      toastMessage.textContent = message;
+      toast.className = `toast ${type}`;
+      toastIcon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Show success popup
+    function showSuccessPopup(message) {
+      const messageElement = successPopup.querySelector('.success-message');
+      messageElement.textContent = message;
+      successPopup.classList.add('active');
+    }
+
+    function closeSuccessPopup() {
+      successPopup.classList.remove('active');
+    }
+
+    window.closeSuccessPopup = closeSuccessPopup;
+
+    // Show upload status
+    function showUploadStatus(message, type = 'loading') {
+      uploadStatus.className = `upload-status ${type}`;
+      uploadStatusText.textContent = message;
+      uploadStatus.style.display = 'flex';
+    }
+
+    // Hide upload status
+    function hideUploadStatus() {
+      uploadStatus.style.display = 'none';
+      uploadStatus.className = 'upload-status';
+    }
+
+    // NEW: Logout dialog functions - FROM PROFILE.HTML
+    function showLogoutDialog() {
+      logoutDialog.classList.add('active');
+    }
+
+    function closeLogoutDialog() {
+      logoutDialog.classList.remove('active');
+    }
+
+    async function confirmLogout() {
+      try {
+        // Clean up listeners
+        if (liveChatListener) {
+          liveChatListener();
+        }
+        
+        await signOut(auth);
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Logout failed:", error);
+        showToast("Logout failed: " + error.message, "error");
+        closeLogoutDialog();
+      }
+    }
+
+    // NEW: Setup logout dialog event listeners
+    logoutConfirm.addEventListener('click', confirmLogout);
+    logoutCancel.addEventListener('click', closeLogoutDialog);
+    
+    logoutDialog.addEventListener('click', (e) => {
+      if (e.target === logoutDialog) {
+        closeLogoutDialog();
+      }
+    });
+
+    // Admin Hidden Entry System
+    brandLogo.addEventListener('click', () => {
+      adminClickCount++;
+      
+      if (adminClickTimer) {
+        clearTimeout(adminClickTimer);
+      }
+      
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 2000);
+      
+      if (adminClickCount >= 3) {
+        adminClickCount = 0;
+        clearTimeout(adminClickTimer);
+        openAdminLogin();
+      }
+    });
+
+    function openAdminLogin() {
+      adminLoginModal.classList.add('active');
+      adminEmail.focus();
+    }
+
+    function closeAdminModal() {
+      adminLoginModal.classList.remove('active');
+      adminEmail.value = '';
+      adminPassword.value = '';
+      admin2FACode.value = '';
+      twoFactorSection.style.display = 'none';
+    }
+
+    async function openUploadModal() {
+      adminUploadModal.classList.add('active');
+      resetUploadForm();
+      await loadAdminTelegramLink();
+      await loadAdminProducts();
+      adminProductsSection.style.display = 'block';
+    }
+
+    function closeUploadModal() {
+      adminUploadModal.classList.remove('active');
+      resetUploadForm();
+      hideUploadStatus();
+      adminProductsSection.style.display = 'none';
+      currentEditProductId = null;
+      uploadModalTitle.innerHTML = '<i class="fa-solid fa-plus"></i> Add New Product';
+      uploadSubmitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Product';
+    }
+
+    // Load admin Telegram link
+    async function loadAdminTelegramLink() {
+      try {
+        const telegramLinkRef = ref(db, 'admin/telegramLink');
+        const snapshot = await get(telegramLinkRef);
+        if (snapshot.exists()) {
+          adminTelegramLink = snapshot.val();
+          adminTelegramLinkInput.value = adminTelegramLink;
+        }
+      } catch (error) {
+        console.error('Error loading Telegram link:', error);
+      }
+    }
+
+    // Save admin Telegram link
+    async function saveAdminTelegramLink() {
+      const link = adminTelegramLinkInput.value.trim();
+      if (link) {
+        try {
+          const telegramLinkRef = ref(db, 'admin/telegramLink');
+          await set(telegramLinkRef, link);
+          adminTelegramLink = link;
+          showToast('Telegram link saved successfully', 'success');
+        } catch (error) {
+          console.error('Error saving Telegram link:', error);
+          showToast('Error saving Telegram link', 'error');
+        }
+      }
+    }
+
+    // Admin Login Handler
+    adminLoginSubmit.addEventListener('click', async () => {
+      const email = adminEmail.value.trim();
+      const password = adminPassword.value.trim();
+      const twoFACode = admin2FACode.value.trim();
+
+      if (!email || !password) {
+        showToast('Please enter email and password', 'error');
+        return;
+      }
+
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        showToast('Invalid admin credentials', 'error');
+        return;
+      }
+
+      if (twoFactorSection.style.display === 'none') {
+        twoFactorSection.style.display = 'block';
+        admin2FACode.focus();
+        showToast('Please enter 2FA access code', 'info');
+        return;
+      }
+
+      if (!twoFACode) {
+        showToast('Please enter 2FA access code', 'error');
+        return;
+      }
+
+      try {
+        const accessCodeRef = ref(db, 'admin/accessCode');
+        const snapshot = await get(accessCodeRef);
+        
+        if (snapshot.exists() && snapshot.val() === twoFACode) {
+          isAdmin = true;
+          // ADMIN STUFF NOT SHOWN ON HOMEPAGE - only in sidebar
+          adminSection.style.display = 'block';
+          closeAdminModal();
+          showToast('Admin login successful!', 'success');
+          
+          // Open upload modal immediately after successful login
+          setTimeout(() => {
+            openUploadModal();
+          }, 500);
+          
+        } else {
+          showToast('Invalid 2FA access code', 'error');
+        }
+      } catch (error) {
+        console.error('2FA verification error:', error);
+        showToast('Error verifying access code', 'error');
+      }
+    });
+
+    // Set up sidebar upload button click handler
+    if (adminUploadBtn) {
+      adminUploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (isAdmin) {
+          openUploadModal();
+        } else {
+          openAdminLogin();
+        }
+      });
+    }
+
+    // Product Type Toggle
+    productType.addEventListener('change', () => {
+      if (productType.value === 'paid') {
+        priceFields.style.display = 'grid';
+        document.getElementById('currentPrice').required = true;
+      } else {
+        priceFields.style.display = 'none';
+        document.getElementById('currentPrice').required = false;
+      }
+    });
+
+    // Image Size Selector
+    document.querySelectorAll('.image-size-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.image-size-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        option.classList.add('selected');
+        imageAspectRatio = option.dataset.ratio;
+      });
+    });
+
+    // Add Image URL Field
+    window.addImageUrlField = function() {
+      if (imageUrlsCount >= 5) {
+        showToast('Maximum 5 image URLs allowed', 'error');
+        return;
+      }
+      
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.className = 'admin-form-input image-url-input';
+      input.placeholder = 'https://files.catbox.moe/example.jpg';
+      input.required = true;
+      
+      imageUrlsContainer.appendChild(input);
+      imageUrlsCount++;
+    };
+
+    // Reset Upload Form
+    function resetUploadForm() {
+      productUploadForm.reset();
+      imageUrlsContainer.innerHTML = '<input type="url" class="admin-form-input image-url-input" placeholder="https://files.catbox.moe/example.jpg" required>';
+      imageUrlsCount = 1;
+      priceFields.style.display = 'none';
+      document.getElementById('currentPrice').required = false;
+      
+      // Reset image size selector
+      document.querySelectorAll('.image-size-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      document.querySelector('.image-size-option[data-ratio="16:9"]').classList.add('selected');
+      imageAspectRatio = '16:9';
+      
+      // Reset button text
+      uploadSubmitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Product';
+      uploadSubmitBtn.onclick = null;
+      uploadSubmitBtn.type = 'submit';
+      
+      // Remove any stored edit ID
+      currentEditProductId = null;
+    }
+
+    // Generate random 10-digit activation key
+    function generateActivationKey() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let key = '';
+      for (let i = 0; i < 10; i++) {
+        key += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return key;
+    }
+
+    // Load admin products for management
+    async function loadAdminProducts() {
+      try {
+        console.log('Loading admin products...');
+        const productsRef = ref(db, 'tools');
+        const snapshot = await get(productsRef);
+        
+        adminProductsList.innerHTML = '';
+        
+        if (snapshot.exists()) {
+          const products = snapshot.val();
+          adminProducts = [];
+          
+          console.log('Found products:', Object.keys(products).length);
+          
+          Object.keys(products).forEach(productKey => {
+            const product = products[productKey];
+            
+            // Skip if product is null
+            if (!product) return;
+            
+            adminProducts.push({
+              id: productKey,
+              ...product
+            });
+            
+            const productItem = document.createElement('div');
+            productItem.className = 'admin-product-item';
+            
+            // Load active key if exists
+            let activeKeyHtml = '';
+            if (product.activeKey) {
+              activeKeyHtml = `
+                <div class="admin-product-code" onclick="copyToClipboard('${product.activeKey}', 'Activation key copied!')">
+                  <i class="fas fa-key"></i> Code: ${product.activeKey}
+                </div>
+              `;
+            }
+            
+            productItem.innerHTML = `
+              <div class="admin-product-info">
+                <div class="admin-product-name">${product.name || 'Unnamed Product'}</div>
+                <div class="admin-product-id">ID: ${productKey.substring(0, 8)}...</div>
+                <div class="admin-product-details">
+                  <div class="admin-product-type">Type: ${product.type === 'paid' ? 'Paid' : 'Free'}</div>
+                  ${activeKeyHtml}
+                </div>
+              </div>
+              <div class="admin-product-actions">
+                ${product.type === 'paid' ? `
+                  <button class="admin-product-generate-key" onclick="generateActivationKeyForProduct('${productKey}', '${product.name || 'this product'}')">
+                    <i class="fas fa-key"></i> Generate Key
+                  </button>
+                ` : ''}
+                <button class="admin-product-edit" onclick="editProduct('${productKey}')">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="admin-product-delete" onclick="showDeleteConfirmation('${productKey}', '${product.name || 'this product'}')">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+            `;
+            
+            adminProductsList.appendChild(productItem);
+          });
+        } else {
+          adminProductsList.innerHTML = `
+            <div style="text-align: center; color: var(--color-text-muted); padding: 20px;">
+              No products uploaded yet
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading admin products:', error);
+        adminProductsList.innerHTML = `
+          <div style="text-align: center; color: var(--color-error); padding: 20px;">
+            Error loading products. Please try again.
+          </div>
+        `;
+      }
+    }
+
+    // Show delete confirmation modal
+    window.showDeleteConfirmation = function(productId, productName) {
+      deleteConfirmationContent.innerHTML = `
+        <div class="delete-confirmation">
+          <div class="delete-icon">
+            <i class="fas fa-trash-alt"></i>
+          </div>
+          <h2 class="delete-title">Delete Product</h2>
+          <p class="delete-message">
+            Are you sure you want to delete this product? This action cannot be undone.
+          </p>
+          
+          <div class="product-to-delete">
+            <h4>Product to delete:</h4>
+            <p><strong>Name:</strong> ${productName}</p>
+            <p><strong>ID:</strong> ${productId.substring(0, 12)}...</p>
+            <p style="color: var(--color-warning); margin-top: 10px;">
+              <i class="fas fa-exclamation-triangle"></i> This will also delete any activation keys associated with this product.
+            </p>
+          </div>
+          
+          <div class="admin-form-buttons">
+            <button class="admin-form-submit" style="background: linear-gradient(135deg, var(--color-error), #dc2626);" onclick="confirmDeleteProduct('${productId}', '${productName}')">
+              <i class="fas fa-trash"></i> Yes, Delete Product
+            </button>
+            <button class="admin-form-cancel" onclick="closeDeleteConfirmation()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      `;
+      
+      deleteConfirmationModal.classList.add('active');
+    };
+
+    // Close delete confirmation
+    function closeDeleteConfirmation() {
+      deleteConfirmationModal.classList.remove('active');
+    }
+
+    window.closeDeleteConfirmation = closeDeleteConfirmation;
+
+    // Confirm delete product
+    window.confirmDeleteProduct = async function(productId, productName) {
+      try {
+        const productRef = ref(db, `tools/${productId}`);
+        await remove(productRef);
+        
+        closeDeleteConfirmation();
+        showToast(`"${productName}" deleted successfully`, 'success');
+        loadAdminProducts();
+        loadMarketData(); // Refresh product grid
+      } catch (error) {
+        console.error('Delete error:', error);
+        showToast('Error deleting product: ' + error.message, 'error');
+      }
+    };
+
+    // Generate activation key for a product
+    window.generateActivationKeyForProduct = async function(productId, productName) {
+      if (!isAdmin) {
+        showToast('Admin access required', 'error');
+        return;
+      }
+
+      const activationKey = generateActivationKey();
+      
+      try {
+        // Save to product data in Firebase
+        const productRef = ref(db, `tools/${productId}/activeKey`);
+        await set(productRef, activationKey);
+        
+        // Reload admin products to show the key
+        loadAdminProducts();
+        
+        showToast(`Activation key generated! Click on the code to copy it.`, 'success');
+        
+      } catch (error) {
+        console.error('Error generating activation key:', error);
+        showToast('Error generating activation key', 'error');
+      }
+    };
+
+    // Edit product function
+    window.editProduct = function(productId) {
+      const product = adminProducts.find(p => p.id === productId);
+      if (product) {
+        currentEditProductId = productId;
+        
+        // Fill the form with product data
+        document.getElementById('adminName').value = product.adminName || product.uploaderName || '';
+        document.getElementById('productName').value = product.name || '';
+        document.getElementById('productDescription').value = product.description || '';
+        document.getElementById('productCategory').value = product.category || '';
+        document.getElementById('productType').value = product.type || 'free';
+        
+        if (product.type === 'paid') {
+          priceFields.style.display = 'grid';
+          document.getElementById('originalPrice').value = product.originalPrice || '';
+          document.getElementById('currentPrice').value = product.price || '';
+        }
+        
+        // Set image aspect ratio
+        const aspectRatio = product.imageAspectRatio || '16:9';
+        document.querySelectorAll('.image-size-option').forEach(opt => {
+          opt.classList.remove('selected');
+          if (opt.dataset.ratio === aspectRatio) {
+            opt.classList.add('selected');
+            imageAspectRatio = aspectRatio;
+          }
+        });
+        
+        // Clear and add image URLs
+        imageUrlsContainer.innerHTML = '';
+        imageUrlsCount = 0;
+        if (product.images && Array.isArray(product.images)) {
+          product.images.forEach(url => {
+            const input = document.createElement('input');
+            input.type = 'url';
+            input.className = 'admin-form-input image-url-input';
+            input.value = url;
+            input.required = true;
+            imageUrlsContainer.appendChild(input);
+            imageUrlsCount++;
+          });
+        } else {
+          const input = document.createElement('input');
+          input.type = 'url';
+          input.className = 'admin-form-input image-url-input';
+          input.placeholder = 'https://files.catbox.moe/example.jpg';
+          input.required = true;
+          imageUrlsContainer.appendChild(input);
+          imageUrlsCount = 1;
+        }
+        
+        document.getElementById('videoUrl').value = product.videoPreview || '';
+        document.getElementById('downloadLink').value = product.downloadLink || '';
+        document.getElementById('usageInstructions').value = product.tool_usage || '';
+        
+        // Change modal title and button
+        uploadModalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Product';
+        uploadSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+        
+        showToast('Product loaded for editing', 'success');
+      }
+    };
+
+    // Upload/Edit Product Handler
+    productUploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!currentUserId || !isAdmin) {
+        showToast('Admin access required', 'error');
+        return;
+      }
+
+      const adminName = document.getElementById('adminName').value.trim();
+      const productName = document.getElementById('productName').value.trim();
+      const description = document.getElementById('productDescription').value.trim();
+      const category = document.getElementById('productCategory').value;
+      const type = productType.value;
+      const videoUrl = document.getElementById('videoUrl').value.trim();
+      const downloadLink = document.getElementById('downloadLink').value.trim();
+      const usageInstructions = document.getElementById('usageInstructions').value.trim();
+      
+      const imageInputs = document.querySelectorAll('.image-url-input');
+      const imageUrls = Array.from(imageInputs)
+        .map(input => input.value.trim())
+        .filter(url => url !== '');
+      
+      if (imageUrls.length === 0) {
+        showToast('At least one image URL is required', 'error');
+        return;
+      }
+
+      // Validate required fields
+      if (!adminName) {
+        showToast('Admin name is required', 'error');
+        return;
+      }
+
+      if (!productName) {
+        showToast('Product name is required', 'error');
+        return;
+      }
+
+      if (!description) {
+        showToast('Description is required', 'error');
+        return;
+      }
+
+      if (!category) {
+        showToast('Category is required', 'error');
+        return;
+      }
+
+      if (!downloadLink) {
+        showToast('Download link is required', 'error');
+        return;
+      }
+
+      if (type === 'paid') {
+        const currentPrice = document.getElementById('currentPrice').value.trim();
+        if (!currentPrice) {
+          showToast('Current price is required for paid products', 'error');
+          return;
+        }
+      }
+
+      // Show loading state on button
+      uploadSubmitBtn.classList.add('loading');
+      uploadSubmitBtn.disabled = true;
+      showUploadStatus(currentEditProductId ? 'Saving changes...' : 'Uploading product...', 'loading');
+
+      const productData = {
+        adminName: adminName,
+        name: productName,
+        description: description,
+        category: category,
+        type: type,
+        images: imageUrls,
+        videoPreview: videoUrl || null,
+        downloadLink: downloadLink,
+        tool_usage: usageInstructions || "How to use: Open in After Effects and customize as needed.",
+        uploaderName: adminName, // Use admin name as uploader
+        uploaderId: currentUserId,
+        updatedAt: Date.now(),
+        isPaid: type === 'paid',
+        imageAspectRatio: imageAspectRatio
+      };
+
+      if (type === 'paid') {
+        productData.price = document.getElementById('currentPrice').value.trim();
+        const originalPrice = document.getElementById('originalPrice').value.trim();
+        if (originalPrice) {
+          productData.originalPrice = originalPrice;
+        }
+      } else {
+        productData.price = "Free";
+      }
+
+      try {
+        // Save Telegram link
+        await saveAdminTelegramLink();
+        
+        if (currentEditProductId) {
+          // Update existing product
+          const productRef = ref(db, `tools/${currentEditProductId}`);
+          await update(productRef, productData);
+          
+          showUploadStatus('Product updated successfully!', 'success');
+          
+          setTimeout(() => {
+            hideUploadStatus();
+            uploadSubmitBtn.disabled = false;
+            uploadSubmitBtn.classList.remove('loading');
+            loadAdminProducts();
+            loadMarketData(); // Refresh market data
+            closeUploadModal();
+            showSuccessPopup('Product updated successfully!');
+          }, 1500);
+          
+        } else {
+          // Create new product
+          const newProductRef = push(ref(db, 'tools'));
+          const productKey = newProductRef.key;
+          
+          // Add createdAt for new products
+          productData.createdAt = Date.now();
+          productData.uploadedAt = Date.now();
+          
+          await set(newProductRef, productData);
+          
+          showUploadStatus('Product uploaded successfully!', 'success');
+          
+          setTimeout(() => {
+            hideUploadStatus();
+            uploadSubmitBtn.disabled = false;
+            uploadSubmitBtn.classList.remove('loading');
+            loadAdminProducts();
+            loadMarketData(); // Refresh market data
+            resetUploadForm();
+            showSuccessPopup('Product uploaded successfully!');
+          }, 1500);
+        }
+        
+      } catch (error) {
+        console.error('Upload/Update error:', error);
+        uploadSubmitBtn.classList.remove('loading');
+        showUploadStatus('Error: ' + error.message, 'error');
+        uploadSubmitBtn.disabled = false;
+        setTimeout(hideUploadStatus, 3000);
+      }
+    });
+
+    // Sidebar functions
+    function toggleSidebar() {
+      sidebarOpen = !sidebarOpen;
+      if (sidebarOpen) {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('active');
+      } else {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+      }
+    }
+
+    hamburgerBtn.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // NEW: Updated logout function to show dialog
+    function logout() {
+      showLogoutDialog();
+    }
+
+    // Filter functionality
+    categoryTrigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      categoryTrigger.classList.toggle('active');
+      categoryDropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!categoryTrigger.contains(e.target) && !categoryDropdown.contains(e.target)) {
+        categoryTrigger.classList.remove('active');
+        categoryDropdown.classList.remove('active');
+      }
+    });
+
+    categoryOptions.forEach(option => {
+      option.addEventListener('click', async function() {
+        const selectedCategory = this.getAttribute('data-value');
+        currentFilterCategory = selectedCategory;
+        const optionTitle = this.textContent;
+        categoryTrigger.querySelector('.placeholder').textContent = optionTitle;
+        categoryTrigger.classList.remove('active');
+        categoryDropdown.classList.remove('active');
+        
+        showLoadingAnimation();
+        setTimeout(async () => {
+          await renderTools(currentFilterCategory, currentSearchQuery);
+        }, 300);
+      });
+    });
+
+    // Search functionality
+    searchBtn.addEventListener('click', () => performSearch());
+    searchInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+
+    function performSearch() {
+      currentSearchQuery = searchInput.value.trim().toLowerCase();
+      showLoadingAnimation();
+      setTimeout(async () => {
+        await renderTools(currentFilterCategory, currentSearchQuery);
+      }, 300);
+    }
+
+    // NEW: SMART NOTIFICATION SYSTEM - FROM PROFILE.HTML
+    function setupLiveChatNotifications() {
+      if (!currentUserId) return;
+      
+      // Load last read timestamp
+      const savedTimestamp = localStorage.getItem('liveChatLastRead');
+      if (savedTimestamp) {
+        lastReadTimestamp = parseInt(savedTimestamp);
+      } else {
+        lastReadTimestamp = Date.now();
+        localStorage.setItem('liveChatLastRead', lastReadTimestamp.toString());
+      }
+      
+      // Load unread count
+      const savedUnread = localStorage.getItem('liveChatUnreadCount');
+      if (savedUnread) {
+        unreadCount = parseInt(savedUnread);
+        updateNotificationBadges();
+      }
+      
+      // Listen for new messages
+      const APP_ID = 'motion-flow-47450';
+      const BASE_PATH = `artifacts/${APP_ID}/public/data`;
+      const MESSAGES_PATH = `${BASE_PATH}/liveChat/messages`;
+      const messagesRef = ref(db, MESSAGES_PATH);
+      
+      const messagesQuery = ref(db, MESSAGES_PATH);
+      
+      liveChatListener = onValue(messagesQuery, (snapshot) => {
+        if (!snapshot.exists()) return;
+        
+        const messages = snapshot.val();
+        let latestTimestamp = lastReadTimestamp;
+        
+        // Check all messages for new ones
+        Object.values(messages).forEach(message => {
+          if (message.timestamp > lastReadTimestamp && message.userId !== currentUserId) {
+            unreadCount++;
+            if (message.timestamp > latestTimestamp) {
+              latestTimestamp = message.timestamp;
+            }
+          }
+        });
+        
+        if (unreadCount > 0) {
+          localStorage.setItem('liveChatUnreadCount', unreadCount.toString());
+          updateNotificationBadges();
+        }
+      }, (error) => {
+        console.error("Error setting up live chat notifications:", error);
+      });
+    }
+
+    function updateNotificationBadges() {
+      if (unreadCount > 0) {
+        liveChatNotification.classList.add('active');
+      } else {
+        liveChatNotification.classList.remove('active');
+      }
+      
+      // For now, we don't have updates notifications set up
+      // You can add similar logic for updates if needed
+    }
+
+    // NEW: Mark messages as read
+    window.markLiveChatAsRead = function() {
+      lastReadTimestamp = Date.now();
+      localStorage.setItem('liveChatLastRead', lastReadTimestamp.toString());
+      unreadCount = 0;
+      localStorage.setItem('liveChatUnreadCount', '0');
+      updateNotificationBadges();
+    };
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUserId = user.uid;
+        
+        // We no longer load user data for sidebar - it just shows "MOTION FLOW"
+        
+        // Load market data after authentication
+        loadMarketData();
+        
+        // Setup notifications after auth
+        setTimeout(() => {
+          setupLiveChatNotifications();
+        }, 1000);
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    // FIXED: Load market data from Firebase with proper error handling
+    function loadMarketData() {
+      console.log('Loading market data...');
+      
+      // Check if user is authenticated
+      if (!currentUserId) {
+        console.log('Waiting for authentication...');
+        setTimeout(loadMarketData, 1000);
+        return;
+      }
+      
+      try {
+        const toolsRef = ref(db, "tools");
+        
+        onValue(toolsRef, (snapshot) => {
+          clearLoadingAnimation();
+          
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            console.log('Firebase data loaded successfully:', Object.keys(data).length, 'products');
+            allToolsData = [];
+            
+            Object.keys(data).forEach(productKey => {
+              try {
+                const tool = data[productKey];
+                
+                // Skip if tool is null or missing basic info
+                if (!tool || typeof tool !== 'object') {
+                  console.warn('Skipping invalid tool:', productKey);
+                  return;
+                }
+                
+                // Ensure images is always an array
+                let images = [];
+                if (tool.images && Array.isArray(tool.images)) {
+                  images = tool.images;
+                } else if (tool.image) {
+                  images = [tool.image];
+                } else {
+                  // Fallback placeholder image
+                  images = ["https://via.placeholder.com/300x200/1a1a2e/00bcd4?text=No+Image"];
+                }
+                
+                // Create tool object with all required properties
+                const toolObject = {
+                  ...tool,
+                  key: productKey,
+                  toolId: productKey,
+                  name: tool.name || "Unnamed Tool",
+                  category: tool.category || "uncategorized",
+                  description: tool.description || "No description available.",
+                  images: images,
+                  image: images[0],
+                  videoPreview: tool.videoPreview || null,
+                  uploaderName: tool.adminName || tool.uploaderName || "Admin Moonlight",
+                  uploadedAt: tool.uploadedAt || tool.createdAt || Date.now(),
+                  tool_usage: tool.tool_usage || "How to use: Open in After Effects and customize as needed.",
+                  downloadLink: tool.downloadLink || "#",
+                  isPaid: tool.isPaid || tool.type === 'paid',
+                  price: tool.price || (tool.type === 'paid' ? '$0.00' : 'Free'),
+                  originalPrice: tool.originalPrice || null,
+                  imageAspectRatio: tool.imageAspectRatio || '16:9'
+                };
+                
+                allToolsData.push(toolObject);
+                
+              } catch (toolError) {
+                console.error('Error processing tool:', productKey, toolError);
+              }
+            });
+            
+            if (allToolsData.length === 0) {
+              showNoProductsMessage();
+              return;
+            }
+            
+            // Sort by upload date (newest first)
+            allToolsData.sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
+            
+            // Render all tools
+            renderTools('all', '');
+            
+          } else {
+            // No data in Firebase
+            showNoProductsMessage();
+          }
+        }, (error) => {
+          console.error('Firebase read error:', error);
+          clearLoadingAnimation();
+          showErrorMessage('Connection error. Please check your internet connection and refresh.');
+        });
+        
+      } catch (error) {
+        console.error('Error setting up Firebase listener:', error);
+        clearLoadingAnimation();
+        showErrorMessage('Failed to load products. Please refresh the page.');
+      }
+    }
+    
+    // Helper function for no products message
+    function showNoProductsMessage() {
+      marketContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-box-open"></i>
+          </div>
+          <h3>No Products Yet</h3>
+          <p>Be the first to upload a product or check back soon!</p>
+          ${isAdmin ? `
+            <button class="admin-form-submit" onclick="openUploadModal()" style="margin-top: 20px;">
+              <i class="fas fa-upload"></i> Upload First Product
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }
+    
+    // Helper function for error message
+    function showErrorMessage(message) {
+      marketContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Connection Issue</h3>
+          <p>${message}</p>
+          <button class="admin-form-submit" onclick="location.reload()" style="margin-top: 20px;">
+            <i class="fas fa-redo"></i> Refresh Page
+          </button>
+        </div>
+      `;
+    }
+
+    // Loading animation
+    function showLoadingAnimation() {
+      marketContainer.innerHTML = `
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Loading products...</div>
+        </div>
+      `;
+    }
+
+    function clearLoadingAnimation() {
+      // Just clear the container, renderTools will fill it
+    }
+
+    // Accurate search function
+    function filterToolsBySearch(tools, query) {
+      if (!query) return tools;
+      
+      return tools.filter(tool => {
+        // Search in name (case insensitive)
+        const nameMatch = tool.name.toLowerCase().includes(query);
+        
+        // Search in description (case insensitive)
+        const descMatch = tool.description && tool.description.toLowerCase().includes(query);
+        
+        // Search in uploader name (case insensitive)
+        const uploaderMatch = tool.uploaderName && tool.uploaderName.toLowerCase().includes(query);
+        
+        // Search in category (case insensitive)
+        const categoryMatch = tool.category && tool.category.toLowerCase().includes(query);
+        
+        // Search in usage instructions (case insensitive)
+        const usageMatch = tool.tool_usage && tool.tool_usage.toLowerCase().includes(query);
+        
+        // Return true if any field matches
+        return nameMatch || descMatch || uploaderMatch || categoryMatch || usageMatch;
+      });
+    }
+
+    // Render products with carousel
+    async function renderTools(filterCategory = 'all', searchQuery = '') {
+      let toolsToDisplay = filterCategory === 'all' 
+        ? allToolsData 
+        : allToolsData.filter(tool => tool.category === filterCategory);
+      
+      // Apply accurate search filter
+      if (searchQuery) {
+        toolsToDisplay = filterToolsBySearch(toolsToDisplay, searchQuery);
+      }
+      
+      marketContainer.innerHTML = '';
+      
+      if (toolsToDisplay.length === 0) {
+        marketContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h3>No products found</h3>
+            <p>Try a different search or check back later for new products.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      for (const tool of toolsToDisplay) {
+        await createToolCard(tool);
+      }
+    }
+
+    async function createToolCard(tool) {
+      const hasVideoPreview = tool.videoPreview && tool.videoPreview !== '#';
+      const hasMultipleImages = tool.images && tool.images.length > 1;
+      
+      // Check if user has unlocked this paid product
+      const isUnlocked = tool.isPaid ? localStorage.getItem(tool.toolId + '_unlocked') === 'true' : true;
+      
+      // Check if uploader is admin
+      const isAdminUploader = tool.uploaderName && 
+        (tool.uploaderName.includes('Admin') || tool.uploaderName.includes('Moonlight'));
+      
+      const card = document.createElement('div');
+      card.className = `product-card ${tool.isPaid ? 'paid' : ''}`;
+      card.dataset.toolId = tool.key;
+      
+      const shareLink = `${window.location.origin}${window.location.pathname}#product-${tool.toolId}`;
+      
+      card.innerHTML = `
+        <div class="product-img-wrapper">
+          <img src="${tool.images[0] || tool.image}" alt="${tool.name}" class="product-img" data-current-index="0">
+          
+          ${hasMultipleImages ? `
+            <div class="carousel-nav">
+              <button class="carousel-btn prev-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="carousel-btn next-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="carousel-dots">
+              ${tool.images.map((_, index) => 
+                `<button class="carousel-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Go to image ${index + 1}"></button>`
+              ).join('')}
+            </div>
+          ` : ''}
+          
+          ${hasVideoPreview ? `
+            <button class="video-preview-btn">
+              <i class="fas fa-play"></i> Video Preview
+            </button>
+          ` : ''}
+        </div>
+        <div class="product-info">
+          <div class="product-header">
+            <div class="product-title">
+              <h3>${tool.name}</h3>
+              <small style="color: var(--color-text-muted); font-size: 0.8em;">${tool.category || 'Uncategorized'}</small>
+            </div>
+            <div class="price-display">
+              ${tool.isPaid ? `
+                <div class="current-price paid">${tool.price || '$0.00'}</div>
+                ${tool.originalPrice ? `<div class="original-price">${tool.originalPrice}</div>` : ''}
+              ` : `
+                <div class="current-price">${tool.price || 'Free'}</div>
+              `}
+            </div>
+          </div>
+          
+          <div class="product-id">
+            <div class="product-id-left">
+              <span>${tool.isPaid ? '🔒 PAID' : '🆓 FREE'}</span>
+              <span class="copy-icon" onclick="copyToClipboard('${tool.toolId}', 'Product ID copied!')">
+                <i class="fas fa-copy"></i> Copy ID
+              </span>
+            </div>
+            <span class="share-icon" onclick="shareProduct('${tool.toolId}', '${tool.name}', '${shareLink}')">
+              <i class="fas fa-share-alt"></i> Share
+            </span>
+          </div>
+          
+          <div class="user-info">
+            <div class="user-details">
+              <span class="username">
+                ${tool.uploaderName || 'Admin Moonlight'}
+                ${isAdminUploader ? 
+                  `<span class="admin-badge"><i class="fas fa-crown"></i> Admin</span>` : ''}
+              </span>
+            </div>
+            <span class="time">${getTimeAgo(tool.uploadedAt || Date.now())}</span>
+          </div>
+          
+          <div class="buttons">
+            ${tool.isPaid ? 
+              (isUnlocked ? 
+                `<button class="download-btn" onclick="handleDownload('${tool.downloadLink}', '${tool.key}', '${tool.name}')">
+                  <i class="fas fa-download"></i> Download
+                </button>` :
+                `<button class="activate-btn" onclick="handleActivation('${tool.key}', '${tool.name}')">
+                  <i class="fas fa-lock-open"></i> Unlock
+                </button>`
+              ) :
+              `<button class="purchase-btn ${tool.isPaid ? 'paid' : ''}" onclick="handleFreeProduct('${tool.downloadLink}', '${tool.key}', '${tool.name}')">
+                <i class="fas fa-shopping-cart"></i> Get Now
+              </button>`
+            }
+            <button class="info-btn" onclick="showToolInfo('${tool.key}')">
+              <i class="fas fa-info-circle"></i> Info
+            </button>
+          </div>
+        </div>
+      `;
+      
+      marketContainer.appendChild(card);
+      
+      // Initialize carousel if multiple images
+      if (hasMultipleImages) {
+        const imgWrapper = card.querySelector('.product-img-wrapper');
+        const imgElement = imgWrapper.querySelector('.product-img');
+        const prevBtn = imgWrapper.querySelector('.prev-btn');
+        const nextBtn = imgWrapper.querySelector('.next-btn');
+        const dots = imgWrapper.querySelectorAll('.carousel-dot');
+        let currentIndex = 0;
+        
+        function updateCarousel() {
+          imgElement.src = tool.images[currentIndex];
+          imgElement.dataset.currentIndex = currentIndex;
+          
+          dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+          });
+        }
+        
+        prevBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = (currentIndex - 1 + tool.images.length) % tool.images.length;
+          updateCarousel();
+        });
+        
+        nextBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = (currentIndex + 1) % tool.images.length;
+          updateCarousel();
+        });
+        
+        dots.forEach((dot, index) => {
+          dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = index;
+            updateCarousel();
+          });
+        });
+        
+        // Click on image to open fullscreen viewer
+        imgWrapper.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('carousel-btn') && !e.target.classList.contains('carousel-dot') && !e.target.classList.contains('video-preview-btn')) {
+            openImageViewer(tool.images, currentIndex, tool);
+          }
+        });
+      } else {
+        // Single image - still clickable for fullscreen
+        const imgWrapper = card.querySelector('.product-img-wrapper');
+        imgWrapper.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('video-preview-btn')) {
+            openImageViewer([tool.images[0] || tool.image], 0, tool);
+          }
+        });
+      }
+      
+      // Video preview button
+      if (hasVideoPreview) {
+        const videoBtn = card.querySelector('.video-preview-btn');
+        videoBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showVideoPreview(tool.videoPreview, tool.name);
+        });
+      }
+    }
+
+    // Image Viewer Functions
+    function openImageViewer(images, startIndex, product) {
+      viewerImages = images;
+      viewerCurrentIndex = startIndex;
+      viewerCurrentProduct = product;
+      
+      updateImageViewer();
+      imageViewer.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Add touch events for swiping
+      viewerImage.addEventListener('touchstart', handleTouchStart, false);
+      viewerImage.addEventListener('touchmove', handleTouchMove, false);
+      viewerImage.addEventListener('touchend', handleTouchEnd, false);
+    }
+
+    function closeImageViewer() {
+      imageViewer.classList.remove('active');
+      document.body.style.overflow = 'auto';
+      
+      // Remove touch events
+      viewerImage.removeEventListener('touchstart', handleTouchStart, false);
+      viewerImage.removeEventListener('touchmove', handleTouchMove, false);
+      viewerImage.removeEventListener('touchend', handleTouchEnd, false);
+    }
+
+    function handleTouchStart(e) {
+      touchStartX = e.touches[0].clientX;
+    }
+
+    function handleTouchMove(e) {
+      touchEndX = e.touches[0].clientX;
+    }
+
+    function handleTouchEnd() {
+      if (touchStartX - touchEndX > 50) {
+        // Swipe left - next image
+        viewerNextImage();
+      } else if (touchEndX - touchStartX > 50) {
+        // Swipe right - previous image
+        viewerPrevImage();
+      }
+    }
+
+    function updateImageViewer() {
+      viewerImage.src = viewerImages[viewerCurrentIndex];
+      
+      // Update dots
+      viewerDots.innerHTML = '';
+      viewerImages.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.className = `image-viewer-dot ${index === viewerCurrentIndex ? 'active' : ''}`;
+        dot.onclick = () => {
+          viewerCurrentIndex = index;
+          updateImageViewer();
+        };
+        viewerDots.appendChild(dot);
+      });
+    }
+
+    function viewerPrevImage() {
+      viewerCurrentIndex = (viewerCurrentIndex - 1 + viewerImages.length) % viewerImages.length;
+      updateImageViewer();
+    }
+
+    function viewerNextImage() {
+      viewerCurrentIndex = (viewerCurrentIndex + 1) % viewerImages.length;
+      updateImageViewer();
+    }
+
+    window.viewerPrevImage = viewerPrevImage;
+    window.viewerNextImage = viewerNextImage;
+    window.closeImageViewer = closeImageViewer;
+
+    // Utility functions
+    function getTimeAgo(timestamp) {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) return `${days}d ago`;
+      if (hours > 0) return `${hours}h ago`;
+      if (minutes > 0) return `${minutes}m ago`;
+      return 'Just now';
+    }
+
+    // Video Preview Function
+    window.showVideoPreview = (videoUrl, productName) => {
+      if (!videoUrl || videoUrl === '#') {
+        showToast('Video preview not available', 'error');
+        return;
+      }
+      
+      const videoDialog = document.createElement('div');
+      videoDialog.className = 'admin-modal-overlay active';
+      videoDialog.innerHTML = `
+        <div class="admin-modal-content" style="max-width: 800px;">
+          <h2 style="margin-bottom: 20px; color: var(--color-primary); text-align: center;">
+            <i class="fas fa-play-circle"></i> ${productName} - Video Preview
+          </h2>
+          <div style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; overflow: hidden;">
+            <video src="${videoUrl}" controls autoplay playsinline style="width: 100%; height: 100%;">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="admin-form-buttons" style="margin-top: 20px;">
+            <button class="admin-form-cancel" onclick="this.closest('.admin-modal-overlay').remove()">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(videoDialog);
+      
+      videoDialog.addEventListener('click', (e) => {
+        if (e.target === videoDialog) {
+          videoDialog.remove();
+        }
+      });
+      
+      setTimeout(() => {
+        const video = videoDialog.querySelector('video');
+        if (video) {
+          video.play().catch(e => console.log('Autoplay prevented:', e));
+        }
+      }, 300);
+    };
+
+    // Activation System
+    window.handleActivation = async (toolKey, productName) => {
+      if (!currentUserId) {
+        showToast('Please login to unlock products', 'error');
+        return;
+      }
+      
+      showActivationPage(toolKey, productName);
+    };
+
+    function showActivationPage(toolKey, productName) {
+      activationContent.innerHTML = `
+        <div class="activation-page">
+          <div class="activation-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h2 class="activation-title">Premium Product</h2>
+          <h3 style="color: var(--color-accent); margin-bottom: 15px;">${productName}</h3>
+          <p class="activation-description">
+            This is a premium product that requires purchase and activation.
+          </p>
+          
+          <div class="activation-instructions">
+            <h4>How to unlock this product:</h4>
+            <ol>
+              <li>Click the "Contact on Telegram" button below</li>
+              <li>Send the product name: <strong>${productName}</strong></li>
+              <li>Request purchase and payment instructions</li>
+              <li>After payment, the admin will send you a 10-digit activation code</li>
+              <li>Return here and enter your activation code below</li>
+            </ol>
+            <p style="color: var(--color-warning); margin-top: 10px; font-weight: 600;">
+              <i class="fas fa-exclamation-circle"></i> Each activation code can only be used once!
+            </p>
+          </div>
+          
+          <div class="activation-input-group">
+            <input type="text" 
+                   class="activation-input" 
+                   id="activationCodeInput" 
+                   placeholder="Enter your 10-digit activation code"
+                   maxlength="10"
+                   style="text-transform: uppercase;">
+            <p style="font-size: 0.9em; color: var(--color-text-muted); margin-top: 8px;">
+              Enter the code exactly as received from the admin
+            </p>
+          </div>
+          
+          <div class="activation-actions">
+            <a href="${adminTelegramLink}" target="_blank" class="telegram-btn">
+              <i class="fab fa-telegram"></i> Contact on Telegram
+            </a>
+            <button class="admin-form-submit" onclick="verifyActivationCode('${toolKey}', '${productName}')">
+              <i class="fas fa-key"></i> Verify Activation Code
+            </button>
+            <button class="back-btn" onclick="closeActivationModal()">
+              <i class="fas fa-arrow-left"></i> Back to Products
+            </button>
+          </div>
+        </div>
+      `;
+      
+      activationModal.classList.add('active');
+    }
+
+    window.verifyActivationCode = async (toolKey, productName) => {
+      const activationCodeInput = document.getElementById('activationCodeInput');
+      const code = activationCodeInput.value.trim().toUpperCase();
+      
+      if (!code || code.length !== 10) {
+        showToast('Please enter a valid 10-digit activation code', 'error');
+        return;
+      }
+      
+      // Show loading state
+      const submitBtn = document.querySelector('#activationContent .admin-form-submit');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+      submitBtn.disabled = true;
+      
+      try {
+        // Check if code exists in Firebase
+        const activeKeyRef = ref(db, `tools/${toolKey}/activeKey`);
+        const snapshot = await get(activeKeyRef);
+        
+        if (!snapshot.exists()) {
+          showToast('Invalid or expired activation code. Please contact admin for a new code.', 'error');
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          return;
+        }
+        
+        const storedCode = snapshot.val();
+        
+        if (code !== storedCode) {
+          showToast('Incorrect activation code. Please check and try again.', 'error');
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          return;
+        }
+        
+        // Code is valid - burn it (delete from Firebase)
+        await remove(activeKeyRef);
+        
+        // Store unlock status in localStorage
+        localStorage.setItem(toolKey + '_unlocked', 'true');
+        
+        // Show success and download
+        closeActivationModal();
+        showDownloadPage(toolKey, productName, code);
+        
+      } catch (error) {
+        console.error('Error verifying activation code:', error);
+        showToast('Error verifying code. Please try again or contact support.', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    };
+
+    function closeActivationModal() {
+      activationModal.classList.remove('active');
+    }
+
+    window.closeActivationModal = closeActivationModal;
+
+    // FIX 2: Handle free product - direct download with product name
+    window.handleFreeProduct = async (downloadLink, toolKey, productName) => {
+      if (downloadLink && downloadLink !== '#') {
+        // Use the enhanced download function with product name
+        triggerDirectDownload(downloadLink, productName);
+        
+        // Track download count
+        try {
+          const downloadCountRef = ref(db, `tools/${toolKey}/downloadCount`);
+          const currentCount = await get(downloadCountRef);
+          const newCount = (currentCount.val() || 0) + 1;
+          await set(downloadCountRef, newCount);
+        } catch (error) {
+          console.error('Error updating download count:', error);
+        }
+      } else {
+        showToast('Download link not available', 'error');
+      }
+    };
+
+    // FIX 2: Handle paid product download with product name
+    window.handleDownload = async (downloadLink, toolKey, productName) => {
+      if (downloadLink && downloadLink !== '#') {
+        // Use the enhanced download function with product name
+        triggerDirectDownload(downloadLink, productName);
+        
+        // Track download count
+        try {
+          const downloadCountRef = ref(db, `tools/${toolKey}/downloadCount`);
+          const currentCount = await get(downloadCountRef);
+          const newCount = (currentCount.val() || 0) + 1;
+          await set(downloadCountRef, newCount);
+        } catch (error) {
+          console.error('Error updating download count:', error);
+        }
+      } else {
+        showToast('Download link not available', 'error');
+      }
+    };
+
+    // Show download page for activated products
+    window.showDownloadPage = async function(toolKey, productName, activationCode = '') {
+      try {
+        const toolRef = ref(db, `tools/${toolKey}`);
+        const snapshot = await get(toolRef);
+        
+        if (!snapshot.exists()) {
+          showToast('Product not found', 'error');
+          return;
+        }
+        
+        const tool = snapshot.val();
+        const downloadLink = tool.downloadLink;
+        
+        if (!downloadLink || downloadLink === '#') {
+          showToast('Download link not available', 'error');
+          return;
+        }
+        
+        const content = document.getElementById('infoContent');
+        content.innerHTML = `
+          <div class="download-page">
+            <div class="download-success-icon">
+              <i class="fas fa-download"></i>
+            </div>
+            <h2 style="margin-bottom: 10px; color: var(--color-success);">
+              <i class="fas fa-unlock-alt"></i> Download Ready!
+            </h2>
+            <h3 style="margin-bottom: 20px; color: var(--color-accent);">${productName}</h3>
+            
+            <div style="margin-bottom: 25px;">
+              <p style="margin-bottom: 15px; color: var(--color-text); font-size: 1.1em;">
+                <i class="fas fa-download"></i> Your product is ready to download:
+              </p>
+              <button class="download-link" onclick="triggerDirectDownload('${downloadLink}', '${productName}')">
+                <i class="fas fa-external-link-alt"></i> Download Now
+              </button>
+            </div>
+            
+            ${activationCode ? `
+              <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 10px;">
+                <p style="color: var(--color-success); margin-bottom: 5px;">
+                  <i class="fas fa-key"></i> <strong>Activation Code Used:</strong> ${activationCode}
+                </p>
+                <p style="color: var(--color-text-muted); font-size: 0.9em;">
+                  This code has been burned and cannot be used again
+                </p>
+              </div>
+            ` : ''}
+            
+            <div class="admin-form-buttons" style="margin-top: 30px;">
+              <button class="admin-form-submit" onclick="copyToClipboard('${downloadLink}', 'Download link copied!')">
+                <i class="fas fa-copy"></i> Copy Link
+              </button>
+              <button class="admin-form-cancel" onclick="document.getElementById('infoDialog').classList.remove('active')">
+                <i class="fas fa-arrow-left"></i> Close
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.getElementById('infoDialog').classList.add('active');
+        
+      } catch (error) {
+        console.error('Error showing download page:', error);
+        showToast('Error loading download information', 'error');
+      }
+    };
+
+    window.showToolInfo = (toolKey) => {
+      const tool = allToolsData.find(t => t.key === toolKey);
+      if (tool) {
+        const content = document.getElementById('infoContent');
+        const isAdminUploader = tool.uploaderName && 
+          (tool.uploaderName.includes('Admin') || tool.uploaderName.includes('Moonlight'));
+        
+        content.innerHTML = `
+          <h2 style="margin-bottom: 15px; color: var(--color-accent);">${tool.name}</h2>
+          <div style="margin-bottom: 20px; padding: 10px; background: rgba(0, 188, 212, 0.1); border-radius: 8px;">
+            <strong>Category:</strong> ${tool.category || 'Uncategorized'}<br>
+            <strong>Price:</strong> ${tool.isPaid ? tool.price : 'Free'}<br>
+            ${tool.originalPrice ? `<strong>Original Price:</strong> <span style="text-decoration: line-through;">${tool.originalPrice}</span><br>` : ''}
+            <strong>Uploaded by:</strong> ${tool.uploaderName || 'Admin Moonlight'} ${isAdminUploader ? '<span class="admin-badge"><i class="fas fa-crown"></i> Admin</span>' : ''}<br>
+            <strong>Uploaded:</strong> ${new Date(tool.uploadedAt || Date.now()).toLocaleDateString()}<br>
+            ${tool.videoPreview ? '<strong>Video Preview:</strong> Available' : ''}
+          </div>
+          <p><strong>Description:</strong> ${tool.description || 'No description available.'}</p>
+          ${tool.tool_usage ? `<p style="margin-top: 15px;"><strong>How to use:</strong> ${tool.tool_usage}</p>` : ''}
+          ${tool.images && tool.images.length > 1 ? 
+            `<p style="margin-top: 15px;"><strong>Images:</strong> ${tool.images.length} images available (click on image to view fullscreen)</p>` : ''}
+          ${tool.isPaid ? 
+            `<div style="margin-top: 15px; padding: 15px; background: rgba(249, 115, 22, 0.1); border-radius: 8px; border: 1px solid rgba(249, 115, 22, 0.3);">
+              <p><strong><i class="fas fa-crown"></i> Premium Product</strong></p>
+              <p>This is a paid product. Message admin on Telegram to purchase and get activation code.</p>
+            </div>` : ''
+          }
+          <button class="admin-form-submit" onclick="document.getElementById('infoDialog').classList.remove('active')" style="margin-top: 20px;">Close</button>
+        `;
+        document.getElementById('infoDialog').classList.add('active');
+      }
+    };
+
+    // Global functions
+    window.copyToClipboard = (text, message = 'Copied to clipboard!') => {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(message, 'success');
+      }).catch(err => {
+        showToast('Failed to copy', 'error');
+      });
+    };
+
+    window.shareProduct = (toolId, productName, shareLink) => {
+      if (navigator.share) {
+        navigator.share({
+          title: `Check out ${productName} on Motion-Flow`,
+          text: `I found this amazing product on Motion-Flow: ${productName}`,
+          url: shareLink,
+        }).then(() => {
+          showToast('Shared successfully!', 'success');
+        }).catch(err => {
+          copyToClipboard(shareLink, 'Product link copied!');
+        });
+      } else {
+        copyToClipboard(shareLink, 'Product link copied! Share this link with others.');
+      }
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Page loaded, initializing...');
+      // Load Telegram link
+      loadAdminTelegramLink();
+    });
+
+    // Make functions available globally
+    window.toggleSidebar = toggleSidebar;
+    window.showLogoutDialog = showLogoutDialog;
+    window.closeLogoutDialog = closeLogoutDialog;
+    window.logout = logout;
+    window.closeAdminModal = closeAdminModal;
+    window.closeUploadModal = closeUploadModal;
+  </script>
+</body>
+</html>

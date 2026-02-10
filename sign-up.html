@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Flow | Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            /* Neon Accents */
+            --neon-orange: #ff9900;
+            --neon-cyan: #06b6d4;
+            --dark-bg: #0f0f1a;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--dark-bg);
+            color: #e5e7eb;
+        }
+        
+        /* Glass Card */
+        .liquid-glass-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); 
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 
+                0 0 5px rgba(0, 0, 0, 0.5),
+                0 0 8px var(--neon-orange),
+                0 0 15px rgba(255, 153, 0, 0.1),
+                inset 0 0 5px var(--neon-cyan);
+        }
+
+        @media (min-width: 768px) {
+            .liquid-glass-card {
+                width: auto;
+                max-width: none;
+            }
+        }
+
+        /* Inputs */
+        .glass-input {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            color: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s; 
+        }
+        
+        .glass-input:focus {
+            outline: none;
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            font-size: 1rem;
+        }
+
+        /* Buttons */
+        .gradient-button {
+            background: linear-gradient(90deg, var(--neon-orange) 0%, var(--neon-cyan) 100%);
+            box-shadow: 0 4px 10px rgba(255, 153, 0, 0.3);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffffff;
+            text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Avatar styling - FIXED: Proper circle shape */
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .avatar-circle.selected {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+            transform: scale(1.05);
+        }
+
+        .avatar-circle:hover {
+            border-color: var(--neon-cyan);
+            transform: scale(1.05);
+        }
+
+        /* Avatar grid with slant layout - boys on top, girls on bottom */
+        .avatar-grid-slant {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .boys-row {
+            grid-row: 1;
+            display: contents;
+        }
+
+        .girls-row {
+            grid-row: 2;
+            display: contents;
+            margin-top: 20px;
+        }
+
+        /* Step containers */
+        .step-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navigation dots */
+        .step-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background-color: var(--neon-cyan);
+            transform: scale(1.2);
+        }
+
+        /* Message box */
+        #message-box {
+            border: 1px solid;
+        }
+
+        /* Custom profile picture upload - EXPANDED CLICK AREA */
+        .custom-avatar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            cursor: pointer;
+        }
+
+        .custom-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .custom-avatar:hover {
+            border-color: var(--neon-orange);
+            transform: scale(1.05);
+        }
+
+        .avatar-upload-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--neon-orange);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: none; /* Overlay doesn't block click */
+        }
+
+        /* Profile picture preview */
+        .profile-picture-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-orange);
+        }
+
+        /* Username validation styles */
+        .username-valid {
+            border-color: #10b981 !important;
+        }
+
+        .username-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .username-checking {
+            border-color: #f59e0b !important;
+        }
+        
+        /* Disabled navigation button */
+        .nav-button-disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <!-- Main container -->
+    <div id="app-container" class="w-full max-w-md">
+        <!-- Sign Up View -->
+        <div id="signup-view">
+            <div class="liquid-glass-card p-6 sm:p-8 md:p-10 rounded-xl shadow-2xl">
+                <h1 class="text-4xl font-bold text-center logo-text mb-2">MOTION FLOW</h1>
+                <p class="text-center text-gray-400 mb-8">Create your account</p>
+
+                <div id="message-box" class="hidden p-4 mb-4 rounded-lg text-sm bg-opacity-30"></div>
+
+                <!-- Sign Up Form -->
+                <div id="signup-form" class="space-y-6">
+                    <div>
+                        <label for="nickname" class="block text-sm font-medium text-gray-200 mb-2">Nick Name</label>
+                        <input type="text" id="nickname" placeholder="Your cool nickname" class="w-full p-3 rounded-lg glass-input placeholder-gray-500" required>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
+                        <input type="email" id="email" placeholder="you@example.com" class="w-full p-3 rounded-lg glass-input placeholder-gray-500" required>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-200 mb-2">Password</label>
+                        <div class="password-container">
+                            <input type="password" id="password" placeholder="Min. 8 characters" class="w-full p-3 pr-12 rounded-lg glass-input placeholder-gray-500" minlength="8" required>
+                            <button type="button" id="toggle-password" class="password-toggle" onclick="togglePasswordVisibility('password')">
+                                <i class="fas fa-eye" id="eye-password"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" onclick="generateStrongPassword()" class="text-xs text-cyan-400">
+                                <i class="fas fa-key mr-1"></i> Generate Password
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-200 mb-2">Confirm Password</label>
+                        <div class="password-container">
+                            <input type="password" id="confirm-password" placeholder="Confirm your password" class="w-full p-3 pr-12 rounded-lg glass-input placeholder-gray-500" minlength="8" required>
+                            <button type="button" id="toggle-confirm-password" class="password-toggle" onclick="togglePasswordVisibility('confirm-password')">
+                                <i class="fas fa-eye" id="eye-confirm-password"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2 flex items-center">
+                            <input type="checkbox" id="show-both-passwords" class="h-4 w-4 text-cyan-600 rounded focus:ring-cyan-500" onchange="toggleBothPasswords()">
+                            <label for="show-both-passwords" class="ml-2 text-xs text-gray-300">Show both passwords</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Strength -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-200">Password Strength</span>
+                            <span id="password-strength-text" class="text-xs text-gray-400">Weak</span>
+                        </div>
+                        <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div id="password-strength-meter" class="h-full bg-red-500 rounded-full w-0 transition-all duration-300"></div>
+                        </div>
+                        <div class="mt-2 grid grid-cols-2 gap-1 text-xs text-gray-400">
+                            <div class="flex items-center">
+                                <i id="check-length" class="fas fa-times mr-1"></i>
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i id="check-uppercase" class="fas fa-times mr-1"></i>
+                                <span>Uppercase letter</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="signup-button" onclick="handleSignUp()" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md" disabled>
+                        Sign Up Now
+                    </button>
+                    
+                    <div class="text-center">
+                        <p class="text-gray-400 text-sm">
+                            Already have an account?
+                            <a href="login.html" class="text-cyan-400 font-medium ml-1">
+                                Log In
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Verification Form -->
+                <div id="verification-view" class="hidden">
+                    <p id="verification-prompt" class="text-center text-gray-300 mb-6">
+                        A 6-digit verification code has been sent to <span id="target-email" class="font-bold text-cyan-400"></span>. Check your inbox.
+                    </p>
+                    <div class="mb-6">
+                        <label for="verification-code" class="block text-sm font-medium text-gray-300 mb-2">Verification Code</label>
+                        <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6" class="w-full p-3 text-center text-2xl rounded-lg glass-input tracking-wider placeholder-gray-500" required>
+                    </div>
+                    <button id="verify-button" onclick="handleVerify()" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md">
+                        Verify & Complete Registration
+                    </button>
+                    <button onclick="handleResendCode()" class="w-full mt-3 text-sm text-cyan-400 py-2 rounded-lg" style="min-height: 50px;">
+                        Resend Code
+                    </button>
+                </div>
+                
+                <!-- Success View -->
+                <div id="success-view" class="hidden">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Setup View - 3-STEP FLOW -->
+        <div id="profile-view" class="hidden">
+            <div class="liquid-glass-card p-6 md:p-8 rounded-xl">
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2 font-['Orbitron']">
+                        MOTION<span style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-orange)); -webkit-background-clip: text; background-clip: text; color: transparent;">FLOW</span>
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">Complete your profile to join the community</p>
+                </div>
+
+                <!-- Step Navigation Dots -->
+                <div class="step-dots">
+                    <div class="step-dot active" data-step="1"></div>
+                    <div class="step-dot" data-step="2"></div>
+                    <div class="step-dot" data-step="3"></div>
+                </div>
+
+                <!-- Message Box -->
+                <div id="profile-message-box" class="hidden p-4 mb-4 rounded-lg text-sm bg-gray-900 border border-gray-800"></div>
+
+                <!-- STEP 1: Neural Sync -->
+                <div id="step-1" class="step-container active">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Neural Sync</h2>
+                    
+                    <!-- Profile Picture Section -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium text-gray-200 mb-4 text-center">Choose Your Profile Picture</label>
+                        
+                        <!-- Custom Profile Picture Upload - EXPANDED CLICK AREA -->
+                        <div class="custom-avatar-container" onclick="document.getElementById('profile-picture-input').click()">
+                            <img id="custom-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=1a1a2e&color=fff&size=100" 
+                                 class="custom-avatar" alt="Profile Picture">
+                            <div class="avatar-upload-overlay">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <input type="file" id="profile-picture-input" accept="image/*" class="hidden" onchange="handleProfilePictureUpload(event)">
+                        </div>
+                        <p class="text-xs text-gray-400 text-center mt-2">Click anywhere on the circle to upload your own picture</p>
+                        
+                        <div class="text-center mt-6">
+                            <p class="text-sm text-gray-300 mb-3">Or select from avatars:</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar Selection - Boys on top, Girls on bottom -->
+                    <div class="avatar-grid-slant">
+                        <!-- Boy Avatars -->
+                        <div class="boys-row">
+                            <img src="https://files.catbox.moe/6zi1s7.jpg" 
+                                 data-id="boy1" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=B1&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/solusu.jpg" 
+                                 data-id="boy2" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=B2&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/zesren.jpg" 
+                                 data-id="boy3" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=B3&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/9lea17.jpg" 
+                                 data-id="boy4" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=B4&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/6wsx8j.jpg" 
+                                 data-id="boy5" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=B5&background=1a1a2e&color=fff&size=80'">
+                        </div>
+                        
+                        <!-- Girl Avatars -->
+                        <div class="girls-row">
+                            <img src="https://files.catbox.moe/jp0i9c.jpg" 
+                                 data-id="girl1" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=G1&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/lvvflu.jpg" 
+                                 data-id="girl2" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=G2&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/ukueea.jpg" 
+                                 data-id="girl3" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=G3&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/78v4je.jpg" 
+                                 data-id="girl4" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=G4&background=1a1a2e&color=fff&size=80'">
+                            
+                            <img src="https://files.catbox.moe/t6mk1v.jpg" 
+                                 data-id="girl5" 
+                                 class="avatar-circle"
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=G5&background=1a1a2e&color=fff&size=80'">
+                        </div>
+                    </div>
+
+                    <!-- Required Inputs -->
+                    <div class="space-y-4 mt-6">
+                        <div>
+                            <label for="profile-username" class="block text-sm font-medium text-gray-200 mb-2">Username *</label>
+                            <input type="text" id="profile-username" placeholder="e.g., motion_flow_user" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600 username-checking" 
+                                   required minlength="3" maxlength="20"
+                                   oninput="validateUsername(this.value)">
+                            <div class="text-xs text-gray-400 mt-1 flex items-center">
+                                <i id="username-status-icon" class="fas fa-circle text-yellow-500 mr-1 text-xs"></i>
+                                <span id="username-status-text">Checking availability...</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                Only lowercase letters, numbers, and underscores allowed. No special characters (@,#,$,-).
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="profile-nickname" class="block text-sm font-medium text-gray-200 mb-2">Nickname *</label>
+                            <input type="text" id="profile-nickname" placeholder="Your display name" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600" 
+                                   maxlength="30" required>
+                            <div class="text-xs text-gray-400 mt-1">This is your display name shown to everyone</div>
+                        </div>
+                    </div>
+
+                    <!-- Next Button -->
+                    <button id="step-1-next" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md mt-6 nav-button-disabled" disabled>
+                        Next Protocol
+                    </button>
+                </div>
+
+                <!-- STEP 2: Personal Dossier -->
+                <div id="step-2" class="step-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Personal Dossier</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="full-name" class="block text-sm font-medium text-gray-200 mb-2">Full Name (Private)</label>
+                            <input type="text" id="full-name" placeholder="Your full name (not public)" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600">
+                            <div class="text-xs text-gray-400 mt-1">Your full name and location will not be shown publicly</div>
+                        </div>
+                        
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-200 mb-2">Location (Private)</label>
+                            <input type="text" id="location" placeholder="City, Country (not public)" 
+                                   class="glass-input w-full p-3 rounded-lg placeholder-gray-600">
+                            <div class="text-xs text-gray-400 mt-1">Only your bio will be visible to others</div>
+                        </div>
+                        
+                        <div>
+                            <label for="bio" class="block text-sm font-medium text-gray-200 mb-2">Bio (Public)</label>
+                            <textarea id="bio" rows="3" placeholder="Share your interests, skills, or a short introduction..." 
+                                      class="glass-input w-full p-3 rounded-lg placeholder-gray-600 resize-none"
+                                      maxlength="250"></textarea>
+                            <div class="text-xs text-gray-400 mt-1">Max 250 characters - This will be visible to everyone</div>
+                        </div>
+                    </div>
+
+                    <!-- Continue Button -->
+                    <button id="step-2-next" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md mt-6">
+                        Continue
+                    </button>
+                </div>
+
+                <!-- STEP 3: Neural Links -->
+                <div id="step-3" class="step-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Neural Links</h2>
+                    
+                    <!-- Interests -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-200 mb-2">Interests (Optional)</label>
+                        <div class="flex flex-wrap gap-2 mb-4" id="interests-container"></div>
+                        
+                        <!-- Custom Interest -->
+                        <div class="flex gap-2">
+                            <input type="text" id="custom-interest" placeholder="Add custom interest" 
+                                   class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
+                            <button type="button" id="add-interest-btn" class="bg-cyan-500 text-gray-900 px-4 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-plus mr-2"></i>Add
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Social Links - Updated to Instagram, YouTube, TikTok -->
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label for="instagram" class="block text-sm font-medium text-gray-200 mb-2">Instagram (Optional)</label>
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-instagram text-pink-500 w-6 text-center"></i>
+                                <input type="text" id="instagram" placeholder="Instagram username" 
+                                       class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="youtube" class="block text-sm font-medium text-gray-200 mb-2">YouTube (Optional)</label>
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-youtube text-red-500 w-6 text-center"></i>
+                                <input type="text" id="youtube" placeholder="YouTube channel name" 
+                                       class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="tiktok" class="block text-sm font-medium text-gray-200 mb-2">TikTok (Optional)</label>
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-tiktok text-black dark:text-white w-6 text-center"></i>
+                                <input type="text" id="tiktok" placeholder="TikTok username" 
+                                       class="glass-input flex-1 p-3 rounded-lg placeholder-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons - REMOVED SKIP BUTTON -->
+                    <button type="button" id="enter-flow-button" class="w-full gradient-button text-white font-semibold py-3 rounded-lg shadow-md" disabled>
+                        ENTER THE FLOW
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="liquid-glass-card w-full max-w-sm p-6 rounded-xl text-center">
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-3"></h3>
+            <p id="modal-message" class="text-gray-300 mb-6"></p>
+            <button onclick="closeModal()" class="gradient-button w-1/2 py-2 text-white rounded-lg">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword,
+            signInWithCustomToken
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc,
+            collection,
+            query,
+            where,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy5uQGcg1cALqFSa1xAQOL6lX8Gz5nFNU",
+            authDomain: "motion-flow-47450.firebaseapp.com",
+            projectId: "motion-flow-47450",
+            storageBucket: "motion-flow-47450.firebasestorage.app",
+            messagingSenderId: "686875529848",
+            appId: "1:686875529848:web:48edf5164aaaf938cdd38d",
+            measurementId: "G-K46N8C1HFQ"
+        };
+
+        const EMAILJS_PUBLIC_KEY = 'Kn6zCcEIVE789CQou';
+        const EMAILJS_SERVICE_ID = 'service_desu1hi';
+        const EMAILJS_TEMPLATE_ID = 'template_51sjsln';
+
+        const appId = 'motion-flow-v1';
+        const __initial_auth_token = window.__initial_auth_token || 'YOUR_DEFAULT_TOKEN_HERE';
+
+        let auth, db, storage;
+        let generatedCode = null;
+        let userData = { email: '', password: '', nickname: '' };
+        let currentUser = null;
+        
+        let selectedAvatar = 'boy1';
+        let selectedProfilePicture = null; // For custom uploaded profile picture file
+        let customPfpUrl = null; // URL for uploaded custom profile picture
+        let selectedInterests = new Set();
+        let currentStep = 1;
+        const totalSteps = 3;
+        
+        const availableInterests = [
+            "Animation", "Motion Design", "Visual Effects", "3D Modeling", "Graphic Design",
+            "Video Editing", "Cinematography", "Typography", "UI/UX Design", "Illustration"
+        ];
+
+        const avatarOptions = [
+            { id: 'boy1', url: 'https://files.catbox.moe/6zi1s7.jpg' },
+            { id: 'boy2', url: 'https://files.catbox.moe/solusu.jpg' },
+            { id: 'boy3', url: 'https://files.catbox.moe/zesren.jpg' },
+            { id: 'boy4', url: 'https://files.catbox.moe/9lea17.jpg' },
+            { id: 'boy5', url: 'https://files.catbox.moe/6wsx8j.jpg' },
+            { id: 'girl1', url: 'https://files.catbox.moe/jp0i9c.jpg' },
+            { id: 'girl2', url: 'https://files.catbox.moe/lvvflu.jpg' },
+            { id: 'girl3', url: 'https://files.catbox.moe/ukueea.jpg' },
+            { id: 'girl4', url: 'https://files.catbox.moe/78v4je.jpg' },
+            { id: 'girl5', url: 'https://files.catbox.moe/t6mk1v.jpg' }
+        ];
+
+        // UI Functions
+        const showCustomModal = (title, message) => {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').innerHTML = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        };
+
+        window.closeModal = () => document.getElementById('custom-modal').classList.add('hidden');
+
+        const showMessage = (text, type = 'error') => {
+            const box = document.getElementById('message-box');
+            box.innerHTML = text;
+            box.className = 'p-4 mb-4 rounded-lg text-sm bg-opacity-30';
+            if (type === 'error') box.classList.add('bg-red-800', 'text-red-300', 'border-red-600');
+            else if (type === 'success') box.classList.add('bg-green-800', 'text-green-300', 'border-green-600');
+            else if (type === 'info') box.classList.add('bg-blue-800', 'text-blue-300', 'border-blue-600');
+            box.classList.remove('hidden');
+        };
+
+        const showProfileMessage = (text, type = 'error') => {
+            const box = document.getElementById('profile-message-box');
+            box.textContent = text;
+            box.className = 'p-4 mb-4 rounded-lg text-sm';
+            if (type === 'error') box.classList.add('bg-red-900', 'text-red-300');
+            else if (type === 'success') box.classList.add('bg-green-900', 'text-green-300');
+            else if (type === 'info') box.classList.add('bg-blue-900', 'text-blue-300');
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 5000);
+        };
+
+        const hideMessage = () => document.getElementById('message-box').classList.add('hidden');
+        const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+        const setView = (viewId) => {
+            if (viewId === 'signup-view') {
+                document.getElementById('signup-view').classList.remove('hidden');
+                document.getElementById('profile-view').classList.add('hidden');
+                document.getElementById('signup-form').classList.remove('hidden');
+                document.getElementById('verification-view').classList.add('hidden');
+                document.getElementById('success-view').classList.add('hidden');
+            } else if (viewId === 'verification-view') {
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('verification-view').classList.remove('hidden');
+                document.getElementById('success-view').classList.add('hidden');
+            } else if (viewId === 'success-view') {
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('verification-view').classList.add('hidden');
+                document.getElementById('success-view').classList.remove('hidden');
+            } else if (viewId === 'profile-view') {
+                document.getElementById('signup-view').classList.add('hidden');
+                document.getElementById('profile-view').classList.remove('hidden');
+                initializeProfileSetup();
+            }
+            hideMessage();
+        };
+
+        const setLoading = (buttonId, isLoading) => {
+            const btn = document.getElementById(buttonId);
+            if (!btn) return;
+            if (isLoading) {
+                btn.dataset.original = btn.textContent;
+                btn.textContent = 'Processing...';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            } else {
+                btn.textContent = btn.dataset.original || 'Submit';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        };
+
+        // Step Navigation with Validation Lock
+        const goToStep = (step) => {
+            // Validate current step before proceeding
+            if (step === 2) {
+                const username = document.getElementById('profile-username').value.trim();
+                const nickname = document.getElementById('profile-nickname').value.trim();
+                
+                if (!username || username.length < 3) {
+                    showProfileMessage("Username must be at least 3 characters", 'error');
+                    return;
+                }
+                
+                // Check username format
+                if (!/^[a-z0-9_]+$/.test(username)) {
+                    showProfileMessage("Username can only contain lowercase letters, numbers, and underscores", 'error');
+                    return;
+                }
+                
+                // Check if username is taken (from validation status)
+                const usernameInput = document.getElementById('profile-username');
+                if (usernameInput.classList.contains('username-invalid')) {
+                    showProfileMessage("Username is not available. Please choose another one.", 'error');
+                    return;
+                }
+                
+                // If still checking, prevent navigation
+                if (usernameInput.classList.contains('username-checking')) {
+                    showProfileMessage("Please wait while we check username availability", 'error');
+                    return;
+                }
+                
+                // If not valid, prevent navigation
+                if (!usernameInput.classList.contains('username-valid')) {
+                    showProfileMessage("Please choose a valid username first", 'error');
+                    return;
+                }
+                
+                if (!nickname) {
+                    showProfileMessage("Nickname is required", 'error');
+                    return;
+                }
+            }
+            
+            // Update active step
+            document.querySelectorAll('.step-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`step-${step}`).classList.add('active');
+            
+            // Update navigation dots
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === step - 1);
+            });
+            
+            currentStep = step;
+            
+            // Update Enter Flow button state when on step 3
+            if (step === 3) {
+                updateEnterFlowButtonState();
+            }
+        };
+
+        // Update Enter Flow button state
+        const updateEnterFlowButtonState = () => {
+            const usernameInput = document.getElementById('profile-username');
+            const nickname = document.getElementById('profile-nickname').value.trim();
+            const enterFlowButton = document.getElementById('enter-flow-button');
+            
+            const usernameValid = usernameInput.classList.contains('username-valid');
+            const nicknameValid = nickname.length > 0;
+            
+            enterFlowButton.disabled = !(usernameValid && nicknameValid);
+        };
+
+        // Username Validation
+        let usernameTimeout = null;
+        window.validateUsername = async (username) => {
+            const usernameInput = document.getElementById('profile-username');
+            const statusIcon = document.getElementById('username-status-icon');
+            const statusText = document.getElementById('username-status-text');
+            const nextButton = document.getElementById('step-1-next');
+            
+            // Clear previous timeout
+            if (usernameTimeout) clearTimeout(usernameTimeout);
+            
+            // Reset styles and disable next button
+            usernameInput.classList.remove('username-valid', 'username-invalid', 'username-checking');
+            usernameInput.classList.add('username-checking');
+            statusIcon.className = 'fas fa-circle text-yellow-500 mr-1 text-xs';
+            statusText.textContent = 'Checking...';
+            statusText.className = 'text-xs text-yellow-500';
+            nextButton.disabled = true;
+            nextButton.classList.add('nav-button-disabled');
+            
+            // Validate format
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Only lowercase letters, numbers, and underscores allowed';
+                statusText.className = 'text-xs text-red-500';
+                nextButton.disabled = true;
+                nextButton.classList.add('nav-button-disabled');
+                updateEnterFlowButtonState();
+                return;
+            }
+            
+            if (username.length < 3) {
+                usernameInput.classList.remove('username-checking');
+                usernameInput.classList.add('username-invalid');
+                statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                statusText.textContent = 'Username must be at least 3 characters';
+                statusText.className = 'text-xs text-red-500';
+                nextButton.disabled = true;
+                nextButton.classList.add('nav-button-disabled');
+                updateEnterFlowButtonState();
+                return;
+            }
+            
+            // Debounce the Firebase check
+            usernameTimeout = setTimeout(async () => {
+                try {
+                    const usernameTaken = await checkUsernameAvailability(username);
+                    
+                    if (usernameTaken) {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-invalid');
+                        statusIcon.className = 'fas fa-times-circle text-red-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is already taken';
+                        statusText.className = 'text-xs text-red-500';
+                        nextButton.disabled = true;
+                        nextButton.classList.add('nav-button-disabled');
+                    } else {
+                        usernameInput.classList.remove('username-checking');
+                        usernameInput.classList.add('username-valid');
+                        statusIcon.className = 'fas fa-check-circle text-green-500 mr-1 text-xs';
+                        statusText.textContent = 'Username is available';
+                        statusText.className = 'text-xs text-green-500';
+                        nextButton.disabled = false;
+                        nextButton.classList.remove('nav-button-disabled');
+                    }
+                    
+                    updateEnterFlowButtonState();
+                    
+                } catch (error) {
+                    console.error("Username check error:", error);
+                    usernameInput.classList.remove('username-checking');
+                    usernameInput.classList.add('username-invalid');
+                    statusIcon.className = 'fas fa-exclamation-circle text-red-500 mr-1 text-xs';
+                    statusText.textContent = 'Error checking username';
+                    statusText.className = 'text-xs text-red-500';
+                    nextButton.disabled = true;
+                    nextButton.classList.add('nav-button-disabled');
+                    updateEnterFlowButtonState();
+                }
+            }, 500);
+        };
+
+        // Profile Picture Upload
+        window.handleProfilePictureUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showProfileMessage("Please upload an image file", 'error');
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showProfileMessage("Image must be less than 5MB", 'error');
+                return;
+            }
+            
+            // Preview the image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('custom-avatar-preview');
+                preview.src = e.target.result;
+                selectedProfilePicture = file;
+                customPfpUrl = e.target.result; // Store the data URL for immediate use
+                
+                // Clear any selected avatar
+                document.querySelectorAll('.avatar-circle').forEach(img => {
+                    img.classList.remove('selected');
+                });
+                
+                selectedAvatar = null; // Clear selected avatar when custom image is chosen
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Core Application Logic
+        const initializeApplication = async () => {
+            try {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                storage = getStorage(app);
+                
+                if (__initial_auth_token && __initial_auth_token !== 'YOUR_DEFAULT_TOKEN_HERE') {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        console.log("Successfully authenticated with custom token");
+                    } catch (tokenError) {
+                        console.error("Custom token authentication failed:", tokenError);
+                        showMessage("Initial authentication failed. Please refresh the page.", 'error');
+                        return;
+                    }
+                }
+                
+                document.getElementById('signup-button').disabled = false;
+            } catch (err) {
+                console.error("Initialization Failed:", err);
+                showMessage("Initialization error. Please check your connection.", 'error');
+            }
+        };
+
+        window.handleSignUp = async () => {
+            const nickname = document.getElementById('nickname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm-password').value;
+
+            if (!nickname || !email || !password) return showCustomModal('Error', 'Please fill in all fields.');
+            if (password.length < 8) return showCustomModal('Error', 'Password must be at least 8 characters.');
+            if (password !== confirm) return showCustomModal('Error', 'Passwords do not match.');
+
+            setLoading('signup-button', true);
+
+            try {
+                generatedCode = generateOTP();
+                userData = { email, password, nickname };
+
+                const emailParams = {
+                    user_name: userData.nickname,
+                    user_email: userData.email,
+                    user_password: userData.password,
+                    otp_code: generatedCode
+                };
+
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams);
+                document.getElementById('target-email').textContent = email;
+                
+                setView('verification-view');
+                showMessage('Verification code sent!', 'success');
+            } catch (error) {
+                console.error("Email Error:", error);
+                showMessage("Failed to send email. Check configuration.", "error");
+            } finally {
+                setLoading('signup-button', false);
+            }
+        };
+
+        window.handleVerify = async () => {
+            const code = document.getElementById('verification-code').value.trim();
+            if (code !== generatedCode) return showCustomModal('Invalid Code', 'The OTP is incorrect.');
+
+            setLoading('verify-button', true);
+
+            try {
+                console.log("Starting user creation...");
+                const userCred = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+                const user = userCred.user;
+                currentUser = user;
+                
+                const tempUsername = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') + Math.floor(Math.random() * 1000);
+                
+                // FIXED: Write to top-level users collection only
+                console.log("Creating user document at path: users/", user.uid);
+                const userDocRef = doc(db, 'users', user.uid);
+                
+                await setDoc(userDocRef, {
+                    uid: user.uid,
+                    nickname: userData.nickname,
+                    email: userData.email,
+                    username: tempUsername,
+                    profileCompleted: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    appId: appId,
+                    accountType: 'email',
+                    status: 'active'
+                }, { merge: true });
+
+                console.log("User document created successfully");
+                
+                document.getElementById('success-view').innerHTML = `
+                    <div class="text-center p-8 liquid-glass-card rounded-lg border-2 border-cyan-500">
+                        <i class="fas fa-check-circle text-5xl text-cyan-400 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-white mb-2">Success!</h2>
+                        <p class="text-gray-400 mb-6">Welcome, ${userData.nickname}. Your account is ready.</p>
+                        <button onclick="showProfileSetup()" class="gradient-button w-full text-white font-semibold py-3 rounded-lg shadow-md">
+                            Go to Profile Setup
+                        </button>
+                    </div>
+                `;
+                
+                setView('success-view');
+                
+            } catch (error) {
+                console.error("Registration Error:", error);
+                
+                let errorMessage = "Registration failed. Please try again.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "This email is already registered. <a href='login.html' class='text-cyan-400 underline'>Go to Login Page</a>";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "Password is too weak. Please use a stronger password.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address. Please check your email format.";
+                } else if (error.code === 'permission-denied') {
+                    errorMessage = "Permission denied. Please make sure you're properly authenticated.";
+                }
+                
+                showCustomModal('Registration Error', errorMessage);
+            } finally {
+                setLoading('verify-button', false);
+            }
+        };
+
+        window.handleResendCode = async () => {
+            showMessage("Resending code...", "info");
+            await window.handleSignUp();
+        };
+
+        window.showProfileSetup = () => {
+            if (userData.nickname) {
+                document.getElementById('profile-nickname').value = userData.nickname;
+            }
+            setView('profile-view');
+        };
+
+        // Profile Setup Functions
+        const initializeProfileSetup = () => {
+            // Setup avatar selection
+            document.querySelectorAll('.avatar-circle').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    const avatarId = e.target.dataset.id;
+                    selectAvatar(avatarId, e.target.src);
+                });
+            });
+
+            // Setup interests
+            initializeInterests();
+
+            // Setup step navigation
+            document.getElementById('step-1-next').addEventListener('click', () => goToStep(2));
+            document.getElementById('step-2-next').addEventListener('click', () => goToStep(3));
+            document.getElementById('add-interest-btn').addEventListener('click', addCustomInterest);
+            document.getElementById('enter-flow-button').addEventListener('click', handleProfileSubmit);
+            
+            // Initialize username validation
+            const usernameInput = document.getElementById('profile-username');
+            if (usernameInput.value) {
+                validateUsername(usernameInput.value);
+            }
+            
+            // Listen for nickname changes to update Enter Flow button state
+            document.getElementById('profile-nickname').addEventListener('input', updateEnterFlowButtonState);
+        };
+
+        const selectAvatar = (avatarId, avatarUrl) => {
+            selectedAvatar = avatarId;
+            selectedProfilePicture = null; // Clear custom profile picture
+            customPfpUrl = null; // Clear custom profile picture URL
+            
+            document.querySelectorAll('.avatar-circle').forEach(img => {
+                img.classList.remove('selected');
+            });
+            
+            const selectedImg = document.querySelector(`[data-id="${avatarId}"]`);
+            if (selectedImg) {
+                selectedImg.classList.add('selected');
+            }
+            
+            // Set custom avatar preview to selected avatar
+            document.getElementById('custom-avatar-preview').src = avatarUrl;
+        };
+
+        const initializeInterests = () => {
+            const container = document.getElementById('interests-container');
+            container.innerHTML = '';
+            
+            availableInterests.forEach(interest => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'px-3 py-2 rounded-lg border border-gray-600 text-gray-300 text-sm';
+                button.textContent = interest;
+                button.setAttribute('data-interest', interest);
+                button.addEventListener('click', () => toggleInterest(interest, button));
+                
+                if (selectedInterests.has(interest)) {
+                    button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                    button.classList.remove('border-gray-600', 'text-gray-300');
+                }
+                
+                container.appendChild(button);
+            });
+        };
+
+        const toggleInterest = (interest, button) => {
+            if (selectedInterests.has(interest)) {
+                selectedInterests.delete(interest);
+                button.classList.remove('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                button.classList.add('border-gray-600', 'text-gray-300');
+            } else {
+                if (selectedInterests.size >= 5) {
+                    showProfileMessage("You can select up to 5 interests", 'info');
+                    return;
+                }
+                selectedInterests.add(interest);
+                button.classList.add('bg-cyan-500', 'border-cyan-500', 'text-gray-900');
+                button.classList.remove('border-gray-600', 'text-gray-300');
+            }
+        };
+
+        const addCustomInterest = () => {
+            const input = document.getElementById('custom-interest');
+            const interest = input.value.trim();
+            
+            if (!interest) {
+                showProfileMessage("Please enter an interest", 'error');
+                return;
+            }
+            
+            if (interest.length > 20) {
+                showProfileMessage("Interest must be less than 20 characters", 'error');
+                return;
+            }
+            
+            if (selectedInterests.has(interest)) {
+                showProfileMessage("This interest is already selected", 'info');
+                return;
+            }
+            
+            if (selectedInterests.size >= 5) {
+                showProfileMessage("You can select up to 5 interests", 'info');
+                return;
+            }
+            
+            selectedInterests.add(interest);
+            
+            const container = document.getElementById('interests-container');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'px-3 py-2 rounded-lg bg-cyan-500 border border-cyan-500 text-gray-900 text-sm';
+            button.textContent = interest;
+            button.setAttribute('data-interest', interest);
+            button.addEventListener('click', () => toggleInterest(interest, button));
+            container.appendChild(button);
+            
+            input.value = '';
+            showProfileMessage(`Added "${interest}" to interests`, 'success');
+        };
+
+        const checkUsernameAvailability = async (username) => {
+            if (!username || username.length < 3) return true;
+            
+            try {
+                // Check if username follows rules (lowercase, numbers, underscore only)
+                if (!/^[a-z0-9_]+$/.test(username)) {
+                    return true; // Invalid format, treat as unavailable
+                }
+                
+                // FIXED: Query the top-level users collection
+                console.log("Checking username availability in users collection");
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(q);
+                
+                return !querySnapshot.empty;
+            } catch (error) {
+                console.error("Error checking username:", error);
+                return false;
+            }
+        };
+
+        const uploadProfilePicture = async (file) => {
+            if (!file || !currentUser) return null;
+            
+            try {
+                console.log("Uploading profile picture...");
+                // Create a reference to the storage location
+                const storageRef = ref(storage, `profile-pictures/${currentUser.uid}/${Date.now()}_${file.name}`);
+                
+                // Upload the file
+                console.log("Starting file upload...");
+                const snapshot = await uploadBytes(storageRef, file);
+                console.log("File uploaded, getting download URL...");
+                
+                // Get the download URL
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                console.log("Profile picture uploaded successfully:", downloadURL);
+                
+                return downloadURL;
+            } catch (error) {
+                console.error("Error uploading profile picture:", error);
+                return null;
+            }
+        };
+
+        const handleProfileSubmit = async () => {
+            if (!currentUser) {
+                showProfileMessage("Please sign in first", 'error');
+                return;
+            }
+
+            const username = document.getElementById('profile-username').value.trim();
+            const nickname = document.getElementById('profile-nickname').value.trim();
+            const fullName = document.getElementById('full-name').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+            const instagram = document.getElementById('instagram').value.trim();
+            const youtube = document.getElementById('youtube').value.trim();
+            const tiktok = document.getElementById('tiktok').value.trim();
+
+            // Validation
+            if (!username) {
+                showProfileMessage("Username is required", 'error');
+                return;
+            }
+
+            if (username.length < 3) {
+                showProfileMessage("Username must be at least 3 characters", 'error');
+                return;
+            }
+
+            // Check username format
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                showProfileMessage("Username can only contain lowercase letters, numbers, and underscores", 'error');
+                return;
+            }
+
+            if (!nickname) {
+                showProfileMessage("Nickname is required", 'error');
+                return;
+            }
+
+            // Check username availability
+            try {
+                console.log("Final username availability check...");
+                const usernameTaken = await checkUsernameAvailability(username);
+                if (usernameTaken) {
+                    showProfileMessage("Username is already taken. Please choose another one.", 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking username availability:", error);
+                showProfileMessage("Error checking username availability", 'error');
+                return;
+            }
+
+            // Set loading state
+            document.getElementById('enter-flow-button').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Entering...';
+            document.getElementById('enter-flow-button').disabled = true;
+
+            try {
+                let finalProfileImageUrl = null;
+                
+                console.log("Processing profile picture...");
+                // FIXED: Check for custom profile picture first
+                if (selectedProfilePicture) {
+                    console.log("Custom profile picture detected, uploading...");
+                    const uploadedUrl = await uploadProfilePicture(selectedProfilePicture);
+                    if (uploadedUrl) {
+                        finalProfileImageUrl = uploadedUrl;
+                        console.log("Using uploaded custom profile picture:", finalProfileImageUrl);
+                    }
+                }
+                
+                // If no custom picture was uploaded but we have a data URL, use it
+                if (!finalProfileImageUrl && customPfpUrl) {
+                    console.log("Using data URL from custom profile picture");
+                    finalProfileImageUrl = customPfpUrl;
+                }
+                
+                // If still no custom picture, use selected avatar
+                if (!finalProfileImageUrl && selectedAvatar) {
+                    const avatar = avatarOptions.find(av => av.id === selectedAvatar);
+                    finalProfileImageUrl = avatar ? avatar.url : 'https://files.catbox.moe/6zi1s7.jpg';
+                    console.log("Using selected avatar:", finalProfileImageUrl);
+                }
+                
+                // Final fallback
+                if (!finalProfileImageUrl) {
+                    finalProfileImageUrl = 'https://files.catbox.moe/6zi1s7.jpg';
+                    console.log("Using default avatar");
+                }
+
+                // Prepare user data
+                const userDataUpdate = {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    nickname: nickname,
+                    username: username,
+                    fullName: fullName || null,
+                    location: location || null,
+                    bio: bio || null,
+                    profileImage: finalProfileImageUrl, // FIXED: Uses customPfpUrl first, then selectedAvatar
+                    interests: Array.from(selectedInterests),
+                    social: {
+                        instagram: instagram || null,
+                        youtube: youtube || null,
+                        tiktok: tiktok || null
+                    },
+                    profileCompleted: true,
+                    updatedAt: new Date().toISOString()
+                };
+
+                console.log("Saving user data to Firestore...");
+                console.log("Data path: users/", currentUser.uid);
+                console.log("Data to save:", userDataUpdate);
+                
+                // FIXED: Save to top-level users collection with { merge: true }
+                const startTime = Date.now();
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                console.log(`Starting setDoc at ${startTime}ms`);
+                
+                await setDoc(userDocRef, userDataUpdate, { merge: true });
+                
+                const endTime = Date.now();
+                console.log(`setDoc completed in ${endTime - startTime}ms`);
+                console.log("User data saved successfully!");
+
+                showProfileMessage("Profile setup complete! Redirecting...", 'success');
+                
+                // FIXED: Immediate redirect after successful save
+                console.log("Redirecting to homepage...");
+                setTimeout(() => {
+                    window.location.href = 'homepage.html';
+                }, 100);
+
+            } catch (error) {
+                console.error("❌ Error saving profile to Firestore:", error);
+                
+                let errorMessage = "Failed to save profile";
+                if (error.code === 'permission-denied') {
+                    errorMessage = "Permission denied. Please check Firestore security rules.";
+                } else if (error.code === 'unavailable') {
+                    errorMessage = "Network error. Please check your internet connection.";
+                } else {
+                    errorMessage = `Failed to save profile: ${error.message}`;
+                }
+                
+                showProfileMessage(errorMessage, 'error');
+                document.getElementById('enter-flow-button').innerHTML = 'ENTER THE FLOW';
+                document.getElementById('enter-flow-button').disabled = false;
+            }
+        };
+
+        // Password Helper Functions
+        window.togglePasswordVisibility = (id) => {
+            const input = document.getElementById(id);
+            const icon = document.getElementById(`eye-${id}`);
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        };
+
+        window.toggleBothPasswords = () => {
+            const showBoth = document.getElementById('show-both-passwords').checked;
+            const passInput = document.getElementById('password');
+            const confirmInput = document.getElementById('confirm-password');
+            const passIcon = document.getElementById('eye-password');
+            const confirmIcon = document.getElementById('eye-confirm-password');
+
+            const type = showBoth ? 'text' : 'password';
+            passInput.type = type;
+            confirmInput.type = type;
+
+            if (showBoth) {
+                passIcon.className = 'fas fa-eye-slash';
+                confirmIcon.className = 'fas fa-eye-slash';
+            } else {
+                passIcon.className = 'fas fa-eye';
+                confirmIcon.className = 'fas fa-eye';
+            }
+        };
+
+        window.generateStrongPassword = () => {
+            const pass = Math.random().toString(36).slice(-10).toUpperCase() + "!" + Math.floor(Math.random()*100);
+            document.getElementById('password').value = pass;
+            document.getElementById('confirm-password').value = pass;
+            checkPasswordStrength(pass);
+        };
+
+        const checkPasswordStrength = (p) => {
+            const meter = document.getElementById('password-strength-meter');
+            const txt = document.getElementById('password-strength-text');
+            const hasUpper = /[A-Z]/.test(p);
+            const isLong = p.length >= 8;
+            
+            document.getElementById('check-length').className = isLong ? 'fas fa-check text-green-500 mr-1' : 'fas fa-times text-red-500 mr-1';
+            document.getElementById('check-uppercase').className = hasUpper ? 'fas fa-check text-green-500 mr-1' : 'fas fa-times text-red-500 mr-1';
+
+            if (p.length > 10 && hasUpper) { 
+                meter.style.width = '100%'; 
+                meter.className = 'h-full bg-green-500 rounded-full transition-all duration-300'; 
+                txt.textContent = 'Strong'; 
+                txt.className = 'text-xs text-green-400';
+            }
+            else if (isLong) { 
+                meter.style.width = '60%'; 
+                meter.className = 'h-full bg-yellow-500 rounded-full transition-all duration-300'; 
+                txt.textContent = 'Medium'; 
+                txt.className = 'text-xs text-yellow-400';
+            }
+            else { 
+                meter.style.width = '20%'; 
+                meter.className = 'h-full bg-red-500 rounded-full transition-all duration-300'; 
+                txt.textContent = 'Weak'; 
+                txt.className = 'text-xs text-red-400';
+            }
+        };
+
+        // Initialize
+        document.getElementById('password').addEventListener('input', (e) => checkPasswordStrength(e.target.value));
+        initializeApplication();
+    </script>
+</body>
+</html>
